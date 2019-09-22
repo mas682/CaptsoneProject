@@ -1,0 +1,1 @@
+This week we are going to work on implementing login funcionality.  We are also going to work on being able to create the project listings.  Also, we are going to work on wireframes for the website.
