@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block main %}
+	{# neat! you can actually "call" other blocks like methods... since they are. #}
+	<h2>{{ self.title() }}</h2>
+		<p> This page will allow a user to manage their account...to be implemented later
+{% endblock %}

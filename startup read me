@@ -1,0 +1,20 @@
+all must be done in command prompt
+
+1. open pgAdmin
+2. click servers
+3. click local
+4. right click and create a new server called "capstone"
+5. have port set at 5432
+6. set password
+7. (optional) in app.py, can alter username, password, host, and port if needed
+8. open command prompt
+9. cd into folder where capstone.py is found
+10. type "set FLASK_APP=capstone.py" if on windows
+11. type..."set FLASK_ENV=development"
+12. type..."flask initdb"
+13. type..."python -m flask run"
+14. copy the url into a web browser
+
+
+type...set FLASK_APP=proj3.py...no set on non windows?, use export instead
+pip install flask

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block main %}
+	{# neat! you can actually "call" other blocks like methods... since they are. #}
+	<h2>{{ self.title() }}</h2>
+
+	{# this is the basic test we're using to see if someone is logged in.
+		you'll have to extend this logic further... #}
+	{% if g.user %}
+			<p>Welcome back {{g.user.username}}!
+	{% else %}
+		<div class="container">
+			<div id = "intro">
+				<p>
+					Welcome to the Pitt Capstone Website!
+					<br> If you have an account, sign in to the right.
+					<br> If you do not have an account, click "Create an Account!" to join
+					<br> The website is used to help students and faculty connect on various projects
+					<br> Below is a listing of a few of the projects currently available
+				</p>
+			</div>
+			<div id = "login">
+				<div id = "loginTitle">
+					  Sign in
+				</div>
+				<div id = "loginForm">
+					<form action="" method="post">
+						<input type="text" name="username" placeholder="Username" size="15" value="{{ request.form.username }}">
+						<input type="password" name="password" placeholder="Password" size="15" value = "{{request.form.password }}">
+						<div>
+							<a id= "ForgotPass" href="{{ url_for('logout') }}">Forgot Password?</a>
+						</div>
+  						<input name = "showPassword" value = "Show" type="checkbox"><label id = "showPass" for="checkbox">Show Password</label>
+						<div id = "button">
+							<input id = "signin" name = "submit_button" type="submit" value="Sign In">
+						</div>
+						<div id = "button">
+							<input id = "createnew" name = "submit_button" type = "submit" value = "Create new account">
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+
+	{% endif %}
+
+{% endblock %}

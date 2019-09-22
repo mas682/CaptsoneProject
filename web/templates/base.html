@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<title>{% block title %}Welcome{% endblock %} - Capstone</title>
+	<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+	<header>
+		<h1>Pitt Capstone Website</h1>
+		<nav>
+			<ul>
+				<li><a href="{{ url_for('home') }}">Home</a>
+
+				{% if g.user %}
+					<li><a href="{{ url_for('account') }}">My account</a>
+					<li><a href="{{ url_for('projects') }}">Projects</a>
+					<li><a href="{{ url_for('logout') }}">Sign out [{{ g.user.username }}]</a>
+				{% else %}
+					<li><a href="{{ url_for('register') }}">Create an Account!</a>
+					<li><a href="{{ url_for('login') }}">Sign in</a>
+				{% endif %}
+			</ul>
+		</nav>
+
+		{% with flashes = get_flashed_messages() %}
+			{% if flashes %}
+				<ul class="flashes">
+				{% for message in flashes %}
+					<li>{{ message }}
+				{% endfor %}
+				</ul>
+			{% endif %}
+		{% endwith %}
+	</header>
+
+	<main>
+		{% block main %}
+			Hmm... no content here. Don't forget to put a "main" block in your template.
+		{% endblock %}
+	</main>
+
+	<footer>
+		Pitt Capstone Website &copy; 2019 Matt Stropkey Jonathan Zhang
+	</footer>
+</body>
+</html>
