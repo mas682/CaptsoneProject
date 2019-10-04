@@ -1,0 +1,4 @@
+In the last sprint, we made made a basic layout for the website, with a login screen.  We also have an idea on what exactly 
+it is that we want in the database but we have not yet fully implemented it.  We also connected the application to a 
+PostgreSQL database.  This sprint, we need to conduct a survey to see exactly what it is that providers would like in the 
+application.  After receiving the survey results, we can go about adding a project to the application and showing it to users.
