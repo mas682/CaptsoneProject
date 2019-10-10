@@ -43,7 +43,7 @@ CREATE TABLE Providers
   PID int,
   email varchar[20],
   password varchar[20],
-  description varchar[50],
+  description varchar[500],
   CONSTRAINT PK_Providers PRIMARY KEY (PID)
 );
 --Projects
@@ -51,7 +51,7 @@ CREATE TABLE Projects
 (
   PID int,
   p_name varchar[20],
-  description varchar[50],
+  description varchar[5000],
   CONSTRAINT PK_Projects PRIMARY KEY(PID, p_name),
   CONSTRAINT FK_Projects FOREIGN KEY(PID) REFERENCES Providers(PID)
 );

@@ -32,5 +32,44 @@ CREATE OR REPLACE FUNCTION viewProjects(pid int) RETURNS SETOF projects AS $$
 BEGIN
   RETURN QUERY
   SELECT * FROM projects WHERE projects.pid=pid;
-END
+END;
+$$ LANGUAGE plpgsql;
+
+--Adds a tag
+CREATE OR REPLACE FUNCTION addTag(newTag VARCHAR[20])RETURNS boolean AS $$
+DECLARE
+    smallest int;
+BEGIN
+  IF(SELECT count(*) FROM Tags where name=newTag>0) --check if doesn't already exist
+    THEN
+      RETURN FALSE;
+  end if;
+  SELECT max(tid) FROM Tags INTO smallest;
+  INSERT INTO tags VALUES(smallest+1,newTag);
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+--Add tag to applicant
+CREATE OR REPLACE FUNCTION applicantTag(theTag int, applicant int) RETURNS boolean AS $$
+BEGIN
+  IF(SELECT count(*) FROM ApplicantsTags where tid=theTag and aid=applicant>0) --check if doesn't already exist
+    THEN
+      RETURN FALSE;
+  end if;
+  INSERT INTO ApplicantsTags VALUES(applicant,theTag);
+  RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+--Add tag to project
+CREATE OR REPLACE FUNCTION projectTag(theTag int, provider int, project varchar[20]) RETURNS boolean AS $$
+BEGIN
+  IF(SELECT count(*) FROM ProjectTags where tid=theTag and p_name=project>0) --check if doesn't already exist
+    THEN
+      RETURN FALSE;
+  end if;
+  INSERT INTO ProjectTags VALUES(provider, p_name,theTag);
+  RETURN TRUE;
+END;
 $$ LANGUAGE plpgsql;
