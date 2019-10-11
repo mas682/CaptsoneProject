@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Create a Project{% endblock %}
+
+{% block main %}
+	<h2>{{ self.title() }}</h2>
+
+	<form action = "{{url_for('create_project') }}" method="Post" novalidate>
+		{{ form.hidden_tag() }}
+		<dt>{{form.title.label}}
+ 		<dd>{{form.title(id='proj_title')}}
+		{% if form.title.errors %}
+			{% for error in form.title.errors %}
+				<span style = "color:red">{{ error }}</span>
+			{% endfor %}
+		{% endif %}
+		<dt>{{form.background.label}}
+		<dd>{{form.background}}
+		{% if form.background.errors %}
+			{% for error in form.background.errors %}
+				<span style = "color:red">{{ error }}</span>
+			{% endfor %}
+		{% endif %}
+		<dt>{{form.description.label}}
+		<dd>{{form.description}}
+		{% if form.description.errors %}
+			{% for error in form.description.errors %}
+				<span style = "color:red">{{ error }}</span>
+			{% endfor %}
+		{% endif %}
+		<dt>{{form.email.label}}
+		<dd>{{form.email}}
+		{% if form.email.errors %}
+			{% for error in form.email.errors %}
+				<span style = "color:red">{{ error }}</span>
+			{% endfor %}
+		{% endif %}
+		<dt>{{form.tags.label}}
+		<dd>{{form.tags}}
+		<dd>{{form.submit()}}
+	</form>
+{% endblock %}

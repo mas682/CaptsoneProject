@@ -1,6 +1,8 @@
 from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash
 from app import *
-from models import db, User
+from models import db, User, Projects, Tags
+from ProjectForm import ProjectForm
+
 
 #########################################################################################
 # Utilities
@@ -37,8 +39,7 @@ def login():
 		return redirect(url_for('home'))
 	error = None
 	if request.method == 'POST':
-
-		user = User.query.filter_by(username=request.form['username']).first()
+		user = User.query.filter_by(email=request.form['username']).first()
 		if user is None:
 			error = 'Invalid username'
 		elif user.password != request.form['password']:
@@ -58,19 +59,19 @@ def register():
 
 	error = None
 	if request.method == 'POST':
-		if not request.form['username']:
-			error = 'You have to enter a username'
-		elif not request.form['email'] or '@' not in request.form['email']:
+		if not request.form['email'] or '@' not in request.form['email']:
 			error = 'You have to enter a valid email address'
 		elif not request.form['password']:
 			error = 'You have to enter a password'
 		elif request.form['password'] != request.form['password2']:
 			error = 'The two passwords do not match'
-		elif get_user_id(request.form['username']) is not None:
+		elif get_user_id(request.form['email']) is not None:
 			error = 'The username is already taken'
+		elif not request.form.get('applicant') and not request.form.get('provider'):
+			error = "You did not pick applicant or project proivder"
 		else:
 			db.session.add(User(
-				username = request.form['username'],
+				username = request.form['email'],
 				email = request.form['email'],
 				password = request.form['password'],
 				applicant = True))
@@ -91,6 +92,24 @@ def logout():
 @app.route('/projects')
 def projects():
 	return render_template('projects.html')
+
+
+@app.route('/create_project', methods=['Get', 'Post'])
+def create_project():
+	form = ProjectForm(request.form)
+	if not g.user.provider:
+		return redirect(url_for('home'))
+	if request.method =='POST':
+		if form.validate_on_submit():
+			db.session.add(Projects(
+				title = form.title.data,
+				background = form.background.data,
+				description = form.description.data,
+				prov_id = g.user.user_id))
+			db.session.commit()
+			flash(form.title.data)
+			return redirect(url_for('home'))
+	return render_template('create_project.html', form=form)
 
 @app.route('/myaccount')
 def account():
@@ -115,7 +134,7 @@ def home():
 		# if the user hits create new account, redirect
 		if request.form["submit_button"] == "Create new account":
 			return redirect(url_for('register'))
-		user = User.query.filter_by(username=request.form['username']).first()
+		user = User.query.filter_by(email=request.form['username']).first()
 		if user is None:
 			error = 'Invalid username'
 		elif user.password != request.form['password']:
@@ -128,6 +147,18 @@ def home():
 	else:
 		if g.user:
 			error = "You are logged in"
+			# for testing...
+			#db.session.add(Tags(name = "Senior"))
+			tag = Tags.query.filter_by(name = "Senior").first()
+			db.session.commit()
+			projects = Projects.query.filter_by(prov_id = g.user.user_id).all()
+			for project in projects:
+				print(str(project.pid))
+				print(str(project.title))
+				print(str(project.p_tags.first().name))
+			proj = Tags.query.filter_by(name = "Senior").first().projects
+			for project in proj:
+				print(str(project.title))
 			flash(error)
 		else:
 			error = "You are not logged in"
