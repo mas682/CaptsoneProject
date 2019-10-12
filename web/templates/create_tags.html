@@ -4,18 +4,30 @@
 
 {% block main %}
 <form id = "tag_form" action = "{{url_for('create_tags') }}" method="Post" novalidate>
-    {{ form.hidden_tag() }}
-    <dt>{{form.tags.label}}
-    <dd>{{form.tags(value = "")}}
-    {% if form.tags.errors %}
-        {% for error in form.tags.errors %}
-            <span style = "color:red">{{ error }}</span>
-        {% endfor %}
-    {% endif %}
-    <dd> {{form.submit2()}}
+    <div id = "insert_tags">
+        {{ form.hidden_tag() }}
+        <div id = "tagBarLabel">
+            {{form.tags.label()}}
+        </div>
+        <div id = "tagInputBox">
+            {{form.tags(value = "", class_='inputBox')}}
+        </div>
+        <div id="addTagButton">
+            {{form.submit2(class_='insertTagButton')}}
+        </div>
+        <div id = "formError">
+            {% if form.tags.errors %}
+                {% for error in form.tags.errors %}
+                    {{ error }}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div id = "tag_listing">
+            Your current tags for the project are below. Click on them to remove them.
+        </div>
+    </div>
 </form>
-<br>
-<dd>These are your current tags. Click on them to remove them.
+
 <form id = "added_tags" action = "{{url_for('create_tags')}}" method="Post" novalidate>
     <div id = "tags_created">
         {{ form.hidden_tag() }}
@@ -26,6 +38,7 @@
         {% endfor %}
     </div>
 </form>
-<br>
-<dd><button type="submit" name="submit3" form="tag_form" value = "create">Create Project</button>
+<div id = "createProjectButtonBox">
+    <button type="submit" name="submit3" form="tag_form" value = "create">Create Project</button>
+</div>
 {% endblock %}

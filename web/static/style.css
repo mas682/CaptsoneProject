@@ -43,36 +43,6 @@ body {
 	flex-wrap: wrap;
 }
 
-#tags_created {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: wrap;
-	width: 100%;
-	padding-top: 10px;
-	align-content: flex-start;
-	justify-content: center;
-	padding-right: 5%;
-	padding-left: 5%
-}
-
-#tag_button_container {
-	padding-left: 15px;
-	padding-right: 15px;
-	padding-top: 10px;
-}
-
-#TagButton{
-	border-radius: 12px;
-	background: #FFD700;
-	color: black;
-}
-
-#TagButton:hover{
-	box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
-	background: blue;
-	color: white;
-}
-
 #titleBox {
 	font-family: calibri;
 	font-style: italic;
@@ -168,6 +138,92 @@ main {
 	position: relative;
 }
 
+/************************************************************
+  create_tags page
+*************************************************************/
+
+#insert_tags{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 100%;
+	padding-top: 10px;
+	align-content: flex-start;
+}
+
+#tagBarLabel {
+	font-size: 1.5em;
+	color: black;
+	width: 100%;
+	padding-left: 5%;
+}
+
+.inputBox{
+	border-radius: 5px;
+	width: 100%;
+}
+
+#tagInputBox {
+	width: 85%;
+	padding-left: 5%;
+}
+#addTagButton {
+	width: 15%;
+	padding-right: 5%;
+}
+
+.insertTagButton {
+	width: 100%;
+}
+
+#formError
+{
+	padding-left: 5%;
+	width: 100%;
+	color: red;
+}
+
+#tag_listing
+{
+	padding-top: 5px;
+	padding-left: 5%;
+	width: 100%;
+}
+
+#tags_created {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 100%;
+	padding-top: 10px;
+	align-content: flex-start;
+	justify-content: center;
+	padding-left: 5%;
+	padding-right: 5%;
+}
+
+#tag_button_container {
+	padding-right: 15px;
+	padding-top: 10px;
+}
+
+#TagButton{
+	border-radius: 12px;
+	background: #FFD700;
+	color: black;
+}
+
+#TagButton:hover{
+	box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+	background: blue;
+	color: white;
+}
+
+#createProjectButtonBox{
+	padding-top: 15px;
+	width: 100%;
+	padding-left: 80%;
+}
 /*************************************************************
   home page and login form
 *************************************************************/
@@ -298,8 +354,9 @@ input, button {
 }
 
 /* This is an attribute selector. Very useful for styling inputs. */
-input[type="text"], input[type="password"] {
+/*input[type="text"], input[type="password"] {
 	border-radius: 5px;
 	width: 95%;
 	margin-left: 2.5%;
 }
+*/
