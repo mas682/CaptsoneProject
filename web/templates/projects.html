@@ -3,5 +3,13 @@
 {% block title %}User List{% endblock %}
 
 {% block main %}
-	<p> This page will have a list of projects that are avaialable
+	<form action="" method="post">
+		<dl>
+			<dt>Title:
+			<dd><input type="text" name="title" size="30" value="{{ request.form.username }}">
+			<dt>Password:
+			<dd><input type="password" name="password" size="30">
+		</dl>
+		<input type="submit" value="Sign In">
+	</form>
 {% endblock %}

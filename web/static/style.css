@@ -43,6 +43,36 @@ body {
 	flex-wrap: wrap;
 }
 
+#tags_created {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 100%;
+	padding-top: 10px;
+	align-content: flex-start;
+	justify-content: center;
+	padding-right: 5%;
+	padding-left: 5%
+}
+
+#tag_button_container {
+	padding-left: 15px;
+	padding-right: 15px;
+	padding-top: 10px;
+}
+
+#TagButton{
+	border-radius: 12px;
+	background: #FFD700;
+	color: black;
+}
+
+#TagButton:hover{
+	box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+	background: blue;
+	color: white;
+}
+
 #titleBox {
 	font-family: calibri;
 	font-style: italic;

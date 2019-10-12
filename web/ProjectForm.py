@@ -7,5 +7,8 @@ class ProjectForm(Form):
     background = StringField("Background:", validators=[InputRequired(message="You must enter background information")])
     description = StringField("Description:", validators=[InputRequired(message="You must enter a description")])
     email = StringField("Contact Email:", validators=[InputRequired(message="You must enter a contact email")])
-    tags = StringField("Tags:")
-    submit = SubmitField('Submit')
+    submit = SubmitField('Next')
+
+class TagForm(Form):
+    tags = StringField("Tags:", validators=[InputRequired(message="You must enter text into the textbox to add a tag")])
+    submit2 = SubmitField('Add tag')

@@ -57,7 +57,7 @@
 		<main>
 			<div id = "mainBox">
 				<div id="leftMargin">
-					<img src="static/pics/cathy4.jpg">
+					<img src="{{ url_for('static', filename='pics/cathy4.jpg') }}">
 				</div>
 				<div id = "midPage">
 					{% block main %}
@@ -65,7 +65,7 @@
 					{% endblock %}
 				</div>
 				<div id="rightMargin">
-					<img src="static/pics/pete3.jpg">
+					<img src={{ url_for('static', filename='pics/pete3.jpg') }}>
 				</div>
 				</main>
 			</div>

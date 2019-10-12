@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}User List{% endblock %}
+
+{% block main %}
+<form id = "tag_form" action = "{{url_for('create_tags') }}" method="Post" novalidate>
+    {{ form.hidden_tag() }}
+    <dt>{{form.tags.label}}
+    <dd>{{form.tags(value = "")}}
+    {% if form.tags.errors %}
+        {% for error in form.tags.errors %}
+            <span style = "color:red">{{ error }}</span>
+        {% endfor %}
+    {% endif %}
+    <dd> {{form.submit2()}}
+</form>
+<br>
+<dd>These are your current tags. Click on them to remove them.
+<form id = "added_tags" action = "{{url_for('create_tags')}}" method="Post" novalidate>
+    <div id = "tags_created">
+        {{ form.hidden_tag() }}
+        {% for tag in tags %}
+            <div id = "tag_button_container">
+                <input type="submit" name="submit" value="{{tag}}" id="TagButton">
+            </div>
+        {% endfor %}
+    </div>
+</form>
+<br>
+<dd><button type="submit" name="submit3" form="tag_form" value = "create">Create Project</button>
+{% endblock %}

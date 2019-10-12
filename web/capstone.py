@@ -1,7 +1,7 @@
 from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash
 from app import *
 from models import db, User, Projects, Tags
-from ProjectForm import ProjectForm
+from ProjectForm import ProjectForm, TagForm
 
 
 #########################################################################################
@@ -96,20 +96,55 @@ def projects():
 
 @app.route('/create_project', methods=['Get', 'Post'])
 def create_project():
+	session.pop('form1', None)
 	form = ProjectForm(request.form)
+	tag_form = TagForm(request.form)
 	if not g.user.provider:
 		return redirect(url_for('home'))
 	if request.method =='POST':
-		if form.validate_on_submit():
-			db.session.add(Projects(
-				title = form.title.data,
-				background = form.background.data,
-				description = form.description.data,
-				prov_id = g.user.user_id))
-			db.session.commit()
+		print(tag_form.validate_on_submit())
+		if form.submit.data and form.validate_on_submit():
+			print("here1" + str(form.submit.data))
+			session['form1'] = {"title":form.title.data,
+								"background":form.background.data,
+								"description": form.description.data,
+								"tags": []}
+			session['tags'] = []
+		#	db.session.add(Projects(
+		#		title = form.title.data,
+		#		background = form.background.data,
+		#		description = form.description.data,
+		#		prov_id = g.user.user_id))
+		#	db.session.commit()
 			flash(form.title.data)
-			return redirect(url_for('home'))
+			return redirect(url_for('create_tags'))
 	return render_template('create_project.html', form=form)
+
+@app.route('/create_project/create_tags', methods=['Get', 'Post'])
+def create_tags():
+	form = TagForm(request.form)
+	if not g.user.provider:
+		return redirect(url_for('home'))
+	if not 'form1' in session:
+		return redirect(url_for('home'))
+	my_dict = session['form1']
+	temp_tags = my_dict['tags']
+	if request.method =='POST':
+		print("5. " + str(request.form))
+		if form.submit2.data and form.validate_on_submit():
+			temp_tags.append(form.tags.data)
+			session['form1']['tags'] = temp_tags
+			flash(form.tags.data)
+			return render_template('create_tags.html', form=form, tags=temp_tags)
+		elif 'submit' in request.form:
+			print("4. " + str(request.form))
+			temp_tags.remove(request.form['submit'])
+			session['form1']['tags'] = temp_tags
+			flash(form.tags.data)
+			return render_template('create_tags.html', form=form, tags=temp_tags)
+		elif 'submit3' in request.form:
+			return redirect(url_for('home'))
+	return render_template('create_tags.html', form=form, tags=temp_tags)
 
 @app.route('/myaccount')
 def account():
@@ -156,9 +191,9 @@ def home():
 				print(str(project.pid))
 				print(str(project.title))
 				print(str(project.p_tags.first().name))
-			proj = Tags.query.filter_by(name = "Senior").first().projects
-			for project in proj:
-				print(str(project.title))
+			#proj = Tags.query.filter_by(name = "Senior").first().projects
+			#for project in proj:
+			#	print(str(project.title))
 			flash(error)
 		else:
 			error = "You are not logged in"
