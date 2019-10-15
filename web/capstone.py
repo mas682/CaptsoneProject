@@ -10,7 +10,7 @@ from ProjectForm import ProjectForm, TagForm
 
 # Given a username, gives
 def get_user_id(username):
-	rv = User.query.filter_by(username=username).first()
+	rv = User.query.filter_by(email=username).first()
 	return rv.user_id if rv else None
 
 # This decorator will cause this function to run at the beginning of each request,
@@ -71,10 +71,10 @@ def register():
 			error = "You did not pick applicant or project proivder"
 		else:
 			db.session.add(User(
-				username = request.form['email'],
 				email = request.form['email'],
 				password = request.form['password'],
-				applicant = True))
+				provider = True,
+				admin = False))
 			db.session.commit()
 			flash('You were successfully registered! Please log in.')
 			return redirect(url_for('login'))
@@ -108,14 +108,9 @@ def create_project():
 			session['form1'] = {"title":form.title.data,
 								"background":form.background.data,
 								"description": form.description.data,
+								"contact": form.email.data,
 								"tags": []}
 			session['tags'] = []
-		#	db.session.add(Projects(
-		#		title = form.title.data,
-		#		background = form.background.data,
-		#		description = form.description.data,
-		#		prov_id = g.user.user_id))
-		#	db.session.commit()
 			flash(form.title.data)
 			return redirect(url_for('create_tags'))
 	return render_template('create_project.html', form=form)
@@ -143,6 +138,41 @@ def create_tags():
 			flash(form.tags.data)
 			return render_template('create_tags.html', form=form, tags=temp_tags)
 		elif 'submit3' in request.form:
+			db.session.add(Projects(
+				title = my_dict['title'],
+				background = my_dict['background'],
+				description = my_dict['description'],
+				contact = my_dict['contact'],
+				prov_id = g.user.user_id))
+			db.session.commit()
+		# if there are tags in the dict...returns false if empty
+		if temp_tags:
+# this line could cause issues if two projects have the same title....
+			project = Projects.query.filter_by(title = my_dict['title']).first()
+			# get each tag in the dict
+			for tag in temp_tags:
+				# see if the tag already exists in the database
+				tag_list=Tags.query.filter_by(name = tag)
+				# if the tag exists, simply associate this project with it
+				if tag_list.first():
+					if tag == tag_list.first().name:
+						print("The tag " + str(tag) + " already existed.")
+						temp_tag = tag_list.first()
+						project.p_tags.append(temp_tag)
+						# otherwise, need to create the tag in the database and
+						# add the project to it
+					else:
+						db.session.add(Tags(name=tag))
+						db.session.commit()
+						temp_tag=Tags.query.filter_by(name=tag).first()
+						project.p_tags.append(temp_tag)
+				else:
+					db.session.add(Tags(name=tag))
+					db.session.commit()
+					temp_tag=Tags.query.filter_by(name=tag).first()
+					project.p_tags.append(temp_tag)
+				db.session.commit()
+			# upon adding a project, return to the home page of the user
 			return redirect(url_for('home'))
 	return render_template('create_tags.html', form=form, tags=temp_tags)
 
@@ -182,19 +212,16 @@ def home():
 	else:
 		if g.user:
 			error = "You are logged in"
-			# for testing...
-			#db.session.add(Tags(name = "Senior"))
-			tag = Tags.query.filter_by(name = "Senior").first()
-			db.session.commit()
 			projects = Projects.query.filter_by(prov_id = g.user.user_id).all()
 			for project in projects:
 				print(str(project.pid))
 				print(str(project.title))
-				print(str(project.p_tags.first().name))
-			#proj = Tags.query.filter_by(name = "Senior").first().projects
-			#for project in proj:
-			#	print(str(project.title))
+				print(str(project.background))
+				print(str(project.description))
+				for Tag in project.p_tags:
+					print("tag: " + str(Tag.name))
 			flash(error)
+			return render_template('home.html', my_projects=projects)
 		else:
 			error = "You are not logged in"
 			flash(error)

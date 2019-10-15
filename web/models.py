@@ -47,6 +47,7 @@ class Projects(db.Model):
 	title = db.Column(db.String(100))
 	background = db.Column(db.String(400))
 	description = db.Column(db.String(400))
+	contact = db.Column(db.String(400), nullable = False)
 	prov_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
 	p_tags = db.relationship('Tags', secondary=tag_links,
 							 backref=db.backref('projects', lazy='dynamic'),
@@ -56,7 +57,7 @@ class Projects(db.Model):
 class User(db.Model):
 	__tablename__ = 'users'
 	user_id   = db.Column(db.Integer,    primary_key = True)
-	email     = db.Column(db.String(80), nullable = False)
+	email     = db.Column(db.String(80), nullable = False, unique = True)
 	password  = db.Column(db.String(64), nullable = False)
 	provider = db.Column(db.Boolean,    nullable = False)
 	admin = db.Column(db.Boolean, nullable = False)

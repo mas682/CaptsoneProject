@@ -10,6 +10,31 @@
 		you'll have to extend this logic further... #}
 	{% if g.user %}
 			<p>Welcome back {{g.user.username}}!
+			{% if my_projects %}
+				<h3> Your projects are listed below:
+				<table>
+					<tr>
+						<th> Title </th>
+						<th> Tags </th>
+						<th> Contact </th>
+					</tr>
+				{% for project in my_projects %}
+					<tr>
+						<td> {{project.title}}</td>
+						<td>
+							{% if project.p_tags %}
+								{% for tag in project.p_tags %}
+									{{tag.name}},
+								{% endfor %}
+							{% endif %}
+						</td>
+						<td> {{project.contact}} </td>
+					</tr>
+				{% endfor %}
+				</table>
+			{% endif %}
+
+
 	{% else %}
 		<div class="container">
 			<div id = "intro">
@@ -28,8 +53,8 @@
 				</div>
 				<div id = "loginForm">
 					<form action="" method="post">
-						<input type="text" name="username" placeholder="Username" size="15" value="{{ request.form.username }}">
-						<input type="password" name="password" placeholder="Password" size="15" value = "{{request.form.password }}">
+						<input type="text" name="username" class="login_input" placeholder="Username" size="15" value="{{ request.form.username }}">
+						<input type="password" name="password" class = "login_input" placeholder="Password" size="15" value = "{{request.form.password }}">
 						<div>
 							<a id= "ForgotPass" href="{{ url_for('logout') }}">Forgot Password?</a>
 						</div>
