@@ -333,6 +333,30 @@ tr:nth-child(even) {
   Nav bar
 *************************************************************/
 
+/*************************************************************
+  Individual project pages
+*************************************************************/
+.projectHeaders {
+	display: inline;
+}
+
+.editProjectButton {
+	background:none;
+	border:none;
+	margin:0;
+	padding:0;
+	cursor: pointer;
+	font-size: .5em;
+	color: gray;
+}
+
+#editProjectForm {
+	display: block;
+}
+
+#editForm {
+	display: block;
+}
 
 /*************************************************************
   Inputs

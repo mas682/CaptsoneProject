@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Register a Project Provider{% endblock %}
+
+{% block main %}
+	<h2>{{ self.title() }}</h2>
+
+	{% if error %}
+		<div class="error"><strong>Error:</strong> {{ error }}</div>
+	{% endif %}
+
+	<form action="" method="post">
+		<dl>
+			<dt>E-Mail:
+			<dd><input type="text" name="email" size="30" value="{{ request.form.email }}">
+			<dt>Password:
+			<dd><input type="password" name="password" size="30">
+			<dt>Password <small>(repeat)</small>:
+			<dd><input type="password" name="password2" size="30">
+			<dt>Type of account:
+			<dd><input type="checkbox" name="applicant" value = "app"><label id = "applicant" for="checkbox">Project Applicant</label>
+			<dd><input type="checkbox" name="provider" value = "prov"><label id = "provider" for="checkbox">Project Provider</label>
+            <dd><input type="checkbox" name="admin" value = "admin"><label id = "admin" for="checkbox">Administrator</label>
+		</dl>
+		<input type="submit" value="Sign Up">
+	</form>
+{% endblock %}

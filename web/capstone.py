@@ -73,13 +73,43 @@ def register():
 			db.session.add(User(
 				email = request.form['email'],
 				password = request.form['password'],
-				provider = True,
+				provider = False,
 				admin = False))
 			db.session.commit()
 			flash('You were successfully registered! Please log in.')
 			return redirect(url_for('login'))
 
 	return render_template('register.html', error=error)
+
+@app.route('/register_provider', methods=['GET', 'POST'])
+def registerProvider():
+	"""Registers a project provider."""
+	if not g.user.admin:
+		return redirect(url_for('home'))
+
+	error = None
+	if request.method == 'POST':
+		if not request.form['email'] or '@' not in request.form['email']:
+			error = 'You have to enter a valid email address'
+		elif not request.form['password']:
+			error = 'You have to enter a password'
+		elif request.form['password'] != request.form['password2']:
+			error = 'The two passwords do not match'
+		elif get_user_id(request.form['email']) is not None:
+			error = 'The username is already taken'
+		elif not request.form.get('applicant') and not request.form.get('provider'):
+			error = "You did not pick applicant or project proivder"
+		else:
+			db.session.add(User(
+				email = request.form['email'],
+				password = request.form['password'],
+				provider = True,
+				admin = False))
+			db.session.commit()
+			flash('New provider successfully registered!')
+			return redirect(url_for('home'))
+
+	return render_template('register_provider.html', error=error)
 
 @app.route('/logout')
 def logout():
@@ -89,16 +119,91 @@ def logout():
 	return redirect(url_for('home'))
 
 
-@app.route('/projects')
-def projects():
-	return render_template('projects.html')
+@app.route('/projects', methods=['GET', 'POST'])
+@app.route('/projects/<project_id>', methods=['GET', 'POST'])
+#def books(book_id=None):
+def projects(project_id = None):
+	form2 = ProjectForm(request.form)
+	print(str(request.method))
+	if request.method == 'POST' and project_id is not None:
+		# this case would be if the provider is updating the project
+		list = []
+		if 'edit' not in session:
+			list = []
+		else:
+			list = session['edit']
+		print(str(request.form))
+		if 'edit_title' in request.form:
+			if 'edit_title' not in list:
+				list.append('edit_title')
+			tag_form = TagForm(request.form)
+			project = Projects.query.filter_by(pid=project_id).first()
+			if project is None:
+				abort(404)
+			else:
+				session['edit'] = list
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+		elif 'edit_background' in request.form:
+			if 'edit_background' not in list:
+				list.append('edit_background')
+			form = ProjectForm(request.form)
+			tag_form = TagForm(request.form)
+			project = Projects.query.filter_by(pid=project_id).first()
+			if project is None:
+				abort(404)
+			else:
+				session['edit']=list
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+		elif 'edit_description' in request.form:
+			if 'edit_description' not in list:
+				list.append('edit_description')
+			form = ProjectForm(request.form)
+			tag_form = TagForm(request.form)
+			project = Projects.query.filter_by(pid=project_id).first()
+			if project is None:
+				abort(404)
+			else:
+				session['edit']=list
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+		elif 'edit_contact' in request.form:
+			if 'edit_contact' not in list:
+				list.append('edit_contact')
+			form = ProjectForm(request.form)
+			tag_form = TagForm(request.form)
+			project = Projects.query.filter_by(pid=project_id).first()
+			if project is None:
+				abort(404)
+			else:
+				session['edit']=list
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+		elif 'edit_tags' in request.form:
+			if 'edit_tags' not in list:
+				list.append('edit_tags')
+			form = ProjectForm(request.form)
+			tag_form = TagForm(request.form)
+			project = Projects.query.filter_by(pid=project_id).first()
+			if project is None:
+				abort(404)
+			else:
+				session['edit']=list
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+		return redirect(url_for('projects'))
+	elif project_id is None:
+		# just a error check for now
+		# will eventually want to show a list of all projects
+		return redirect(url_for('my_account'))
+	else:
+		project = Projects.query.filter_by(pid = project_id).first()
+		if project is None:
+			abort(404)
+		else:
+			return render_template('project.html', project = project, form=form2, edit=[])
 
 
 @app.route('/create_project', methods=['Get', 'Post'])
 def create_project():
 	session.pop('form1', None)
 	form = ProjectForm(request.form)
-	tag_form = TagForm(request.form)
 	if not g.user.provider:
 		return redirect(url_for('home'))
 	if request.method =='POST':

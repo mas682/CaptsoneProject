@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}{{project.title}}{% endblock %}
+
+{% block main %}
+	{# neat! you can actually "call" other blocks like methods... since they are. #}
+        <form id = "editProjectForm" action = "" method="Post">
+            {{ form.hidden_tag()}}
+        </form>
+        <form id = "editForm" action = "{{url_for('create_project') }}" method="Post" novalidate>
+            {{ form.hidden_tag() }}
+        </form>
+        <h2 class = "projectHeaders">Title</h2>
+        {% if 'edit_title' not in edit %}
+                <button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">Edit Title</button>
+            <p> {{project.title}}
+        {% else %}
+                <dd>{{form.title(id='proj_title', value=project.title, form="editProjectForm")}}</dd>
+                {% if form.title.errors %}
+                    {% for error in form.title.errors %}
+                        <span id="formError">{{ error }}</span>
+                    {% endfor %}
+                {% endif %}
+                <br>
+        {% endif %}
+        <h2 class = "projectHeaders">Background</h2>
+        {% if 'edit_background' not in edit %}
+            <button type="submit" form = "editProjectForm" class = "editProjectButton" name="edit_background">Edit Background</button>
+            <p> {{project.background}}
+        {% else %}
+            <dd>{{form.background(value=project.background, form="editProjectForm")}}</dd>
+            {% if form.background.errors %}
+                {% for error in form.title.errors %}
+                    <span id="formError">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+            <br>
+        {% endif %}
+        <h2 class = "projectHeaders">Description</h2>
+        {% if 'edit_description' not in edit %}
+            <button type="submit" class = "editProjectButton" form="editProjectForm" name = "edit_description">Edit Description</button>
+            <p> {{project.description}}
+        {% else %}
+            <dd>{{form.description(value=project.description, form="editProjectForm")}}</dd>
+            {% if form.title.errors %}
+                {% for error in form.description.errors %}
+                    <span id="formError">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+            <br>
+        {% endif %}
+        <h2 class = "projectHeaders">Contact Email</h2>
+        {% if 'edit_contact' not in edit %}
+            <button type="submit" class = "editProjectButton" form="editProjectForm" name = "edit_contact">Edit Contact Email</button>
+            <p> {{project.contact}}
+        {% else %}
+            <dd>{{form.email(value=project.contact, form="editProjectForm")}}</dd>
+            {% if form.title.errors %}
+                {% for error in form.email.errors %}
+                    <span id="formError">{{ error }}</span>
+                {% endfor %}
+            {% endif %}
+            <br>
+        {% endif %}
+        <h2 class = "projectHeaders">Project Tags</h2>
+        {% if 'edit_tags' not in edit %}
+            <button type="submit" class = "editProjectButton" form="editProjectForm" name = "edit_tags">Edit Tags</button>
+            {% if project.p_tags %}
+                <div id = "tags_created">
+                    {{ form.hidden_tag() }}
+                    {% for tag in project.p_tags %}
+                        <div id = "tag_button_container">
+                            <input type="submit" name="submit" value="{{tag.name}}" id="TagButton">
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% else %}
+            <form id = "tag_form" action = "{{url_for('create_tags') }}" method="Post" novalidate>
+                <div id = "insert_tags">
+                    {{ tag_form.hidden_tag() }}
+                <div id = "tagInputBox">
+                    {{tag_form.tags(value = "", class_='inputBox')}}
+                </div>
+                <div id="addTagButton">
+                    {{tag_form.submit2(class_='insertTagButton')}}
+                </div>
+                <div id = "formError">
+                    {% if tag_form.tags.errors %}
+                        {% for error in form.tags.errors %}
+                            {{ error }}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <div id = "tag_listing">
+                    Your current tags for the project are below. Click on them to remove them.
+                </div>
+            </div>
+        </form>
+need to deal with adding tags not being in database yet like you did for create_tags
+        <form id = "added_tags" action = "{{url_for('create_tags')}}" method="Post" novalidate>
+            <div id = "tags_created">
+                {{ form.hidden_tag() }}
+                {% for tag in project.p_tags %}
+                    <div id = "tag_button_container">
+                        <input type="submit" name="submit" value="{{tag.name}}" id="TagButton">
+                    </div>
+                {% endfor %}
+            </div>
+        </form>
+        {% endif %}
+
+
+{% endblock %}
