@@ -138,6 +138,13 @@ main {
 	position: relative;
 }
 
+.projectLink {
+	color: black;
+}
+
+.projectLink:hover {
+	color: blue;
+}
 /************************************************************
   create_tags page
 *************************************************************/
@@ -219,7 +226,7 @@ main {
 	color: white;
 }
 
-#createProjectButtonBox{
+.submit_data_button{
 	padding-top: 15px;
 	width: 100%;
 	padding-left: 80%;
@@ -284,11 +291,11 @@ h1 {
 	color: black;
 }
 
-a {
+.navBarLink {
 	color: white;
 }
 
-a:hover {
+.navBarLink:hover {
 	color: black;
 }
 

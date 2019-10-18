@@ -20,7 +20,7 @@
 					</tr>
 				{% for project in my_projects %}
 					<tr>
-						<td> {{project.title}}</td>
+						<td> <a class = "projectLink" href="{{ url_for('projects', project_id=project.pid) }}">{{project.title}}</td>
 						<td>
 							{% if project.p_tags %}
 								{% for tag in project.p_tags %}

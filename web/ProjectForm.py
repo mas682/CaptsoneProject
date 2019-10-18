@@ -8,6 +8,7 @@ class ProjectForm(Form):
     description = StringField("Description:", validators=[InputRequired(message="You must enter a description")])
     email = StringField("Contact Email:", validators=[InputRequired(message="You must enter a contact email")])
     submit = SubmitField('Next')
+    remove = StringField("Enter project name to remove:")
 
 class TagForm(Form):
     tags = StringField("Tags:", validators=[InputRequired(message="You must enter text into the textbox to add a tag")])

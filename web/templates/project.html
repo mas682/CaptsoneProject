@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{project.title}}{% endblock %}
+{% block title %}Pitt Capstone Website{% endblock %}
 
 {% block main %}
 	{# neat! you can actually "call" other blocks like methods... since they are. #}
@@ -22,6 +22,11 @@
                     {% endfor %}
                 {% endif %}
                 <br>
+				<dd>
+				<div>
+					<button type="submit" name="update_title" form="editProjectForm">Update Title</button>
+				</div>
+				</dd>
         {% endif %}
         <h2 class = "projectHeaders">Background</h2>
         {% if 'edit_background' not in edit %}
@@ -35,6 +40,11 @@
                 {% endfor %}
             {% endif %}
             <br>
+			<dd>
+			<div>
+				<button type="submit" name="update_background" form="editProjectForm">Update Background</button>
+			</div>
+			</dd>
         {% endif %}
         <h2 class = "projectHeaders">Description</h2>
         {% if 'edit_description' not in edit %}
@@ -48,6 +58,11 @@
                 {% endfor %}
             {% endif %}
             <br>
+			<dd>
+			<div>
+				<button type="submit" name="update_description" form="editProjectForm">Update Description</button>
+			</div>
+			</dd>
         {% endif %}
         <h2 class = "projectHeaders">Contact Email</h2>
         {% if 'edit_contact' not in edit %}
@@ -61,6 +76,11 @@
                 {% endfor %}
             {% endif %}
             <br>
+			<dd>
+			<div>
+				<button type="submit" name="update_contact" form="editProjectForm">Update Contact Email</button>
+			</div>
+			</dd>
         {% endif %}
         <h2 class = "projectHeaders">Project Tags</h2>
         {% if 'edit_tags' not in edit %}
@@ -109,6 +129,21 @@ need to deal with adding tags not being in database yet like you did for create_
             </div>
         </form>
         {% endif %}
-
+		{% if g.user.user_id == project.prov_id %}
+			<br>
+			{% if 'remove_project' not in edit %}
+				<div class = "submit_data_button">
+					<button type="submit" name="remove_project" form="editProjectForm">Remove Project</button>
+				</div>
+			{% else %}
+				<h2 class = "projectHeaders">{{form.remove.label}}</h2>
+				<dd>{{form.remove(value="", form="editProjectForm")}}</dd>
+				{% if form.remove.errors %}
+					{% for error in form.email.errors %}
+						<span id="formError">{{ error }}</span>
+					{% endfor %}
+				{% endif %}
+			{% endif %}
+		{% endif %}
 
 {% endblock %}

@@ -124,7 +124,11 @@ def logout():
 #def books(book_id=None):
 def projects(project_id = None):
 	form2 = ProjectForm(request.form)
+	tag_form = TagForm(request.form)
 	print(str(request.method))
+	project = Projects.query.filter_by(pid=project_id).first()
+	if project is None:
+		abort(404)
 	if request.method == 'POST' and project_id is not None:
 		# this case would be if the provider is updating the project
 		list = []
@@ -133,61 +137,66 @@ def projects(project_id = None):
 		else:
 			list = session['edit']
 		print(str(request.form))
+		print("55. " + str(list))
 		if 'edit_title' in request.form:
 			if 'edit_title' not in list:
 				list.append('edit_title')
-			tag_form = TagForm(request.form)
-			project = Projects.query.filter_by(pid=project_id).first()
-			if project is None:
-				abort(404)
-			else:
-				session['edit'] = list
+			session['edit'] = list
+			return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+		elif 'update_title' in request.form:
+			if 'edit_title' not in list:
 				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+			else:
+				list.remove('edit_title')
+				session['edit'] = list
+				project.title = form2.title.data
+				db.session.commit()
 		elif 'edit_background' in request.form:
 			if 'edit_background' not in list:
 				list.append('edit_background')
-			form = ProjectForm(request.form)
-			tag_form = TagForm(request.form)
-			project = Projects.query.filter_by(pid=project_id).first()
-			if project is None:
-				abort(404)
-			else:
-				session['edit']=list
+			session['edit']=list
+		elif 'update_background' in request.form:
+			if 'edit_background' not in list:
 				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+			else:
+				list.remove('edit_background')
+				session['edit'] = list
+				project.background = form2.background.data
+				db.session.commit()
 		elif 'edit_description' in request.form:
 			if 'edit_description' not in list:
 				list.append('edit_description')
-			form = ProjectForm(request.form)
-			tag_form = TagForm(request.form)
-			project = Projects.query.filter_by(pid=project_id).first()
-			if project is None:
-				abort(404)
-			else:
-				session['edit']=list
+			session['edit']=list
+		elif 'update_description' in request.form:
+			if 'edit_description' not in list:
 				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+			else:
+				list.remove('edit_description')
+				session['edit'] = list
+				project.description = form2.description.data
+				db.session.commit()
 		elif 'edit_contact' in request.form:
 			if 'edit_contact' not in list:
 				list.append('edit_contact')
-			form = ProjectForm(request.form)
-			tag_form = TagForm(request.form)
-			project = Projects.query.filter_by(pid=project_id).first()
-			if project is None:
-				abort(404)
-			else:
-				session['edit']=list
+			session['edit']=list
+		elif 'update_contact' in request.form:
+			if 'edit_contact' not in list:
 				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+			else:
+				list.remove('edit_contact')
+				session['edit'] = list
+				print(form2.email.data)
+				project.contact = form2.email.data
+				db.session.commit()
 		elif 'edit_tags' in request.form:
 			if 'edit_tags' not in list:
 				list.append('edit_tags')
-			form = ProjectForm(request.form)
-			tag_form = TagForm(request.form)
-			project = Projects.query.filter_by(pid=project_id).first()
-			if project is None:
-				abort(404)
-			else:
-				session['edit']=list
-				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
-		return redirect(url_for('projects'))
+			session['edit']=list
+		elif 'remove_project' in request.form:
+			if 'remove_project' not in list:
+				list.append('remove_project')
+			session['edit']=list
+		return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
 	elif project_id is None:
 		# just a error check for now
 		# will eventually want to show a list of all projects
@@ -207,7 +216,6 @@ def create_project():
 	if not g.user.provider:
 		return redirect(url_for('home'))
 	if request.method =='POST':
-		print(tag_form.validate_on_submit())
 		if form.submit.data and form.validate_on_submit():
 			print("here1" + str(form.submit.data))
 			session['form1'] = {"title":form.title.data,
