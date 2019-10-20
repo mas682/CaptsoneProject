@@ -6,41 +6,43 @@
 
 
 --Add new applicant
-CREATE OR REPLACE PROCEDURE addApplicant(new_email VARCHAR[20],new_password VARCHAR[20])
+CREATE OR REPLACE PROCEDURE addApplicant(new_email VARCHAR(20),new_password VARCHAR(20))
 AS $$
   DECLARE
     smallest int;
   BEGIN
-    SELECT max(aid) FROM applicants INTO smallest;
-    INSERT INTO applicants VALUES (smallest+1,new_email,new_password,null);
+    SELECT max(uid) FROM users INTO smallest;
+    INSERT INTO users VALUES (smallest+1,new_email,new_password,null,false);
   END;
 $$ LANGUAGE plpgsql;
 
 --Add new provider
-CREATE OR REPLACE PROCEDURE addProvider(new_email VARCHAR[20],new_password VARCHAR[20])
+CREATE OR REPLACE PROCEDURE addProvider(new_email VARCHAR(20),new_password VARCHAR(20))
 AS $$
   DECLARE
     smallest int;
   BEGIN
-    SELECT max(pid) FROM providers INTO smallest;
-    INSERT INTO providers VALUES (smallest+1,new_email,new_password,null);
+    SELECT max(uid) FROM users INTO smallest;
+    INSERT INTO users VALUES (smallest+1,new_email,new_password,null,true);
   END;
 $$ LANGUAGE plpgsql;
 
 --View all projects from a provider
-CREATE OR REPLACE FUNCTION viewProjects(pid int) RETURNS SETOF projects AS $$
+CREATE OR REPLACE FUNCTION viewProjects(provider int) RETURNS SETOF projects AS $$
 BEGIN
   RETURN QUERY
-  SELECT * FROM projects WHERE projects.pid=pid;
+  SELECT * FROM projects WHERE projects.uid=provider;
 END;
 $$ LANGUAGE plpgsql;
 
 --Adds a tag
-CREATE OR REPLACE FUNCTION addTag(newTag VARCHAR[20])RETURNS boolean AS $$
+CREATE OR REPLACE FUNCTION addTag(newTag VARCHAR(20))RETURNS boolean AS $$
 DECLARE
     smallest int;
+    checkTag int;
 BEGIN
-  IF(SELECT count(*) FROM Tags where name=newTag>0) --check if doesn't already exist
+  SELECT INTO checkTag count(*) FROM Tags where name=newTag;
+  IF(checkTag > 0) --check if doesn't already exist
     THEN
       RETURN FALSE;
   end if;
@@ -52,24 +54,60 @@ $$ LANGUAGE plpgsql;
 
 --Add tag to applicant
 CREATE OR REPLACE FUNCTION applicantTag(theTag int, applicant int) RETURNS boolean AS $$
+DECLARE
+    checkApp int;
 BEGIN
-  IF(SELECT count(*) FROM ApplicantsTags where tid=theTag and aid=applicant>0) --check if doesn't already exist
+  SELECT count(*) INTO checkApp FROM ApplicantsTags where tid=theTag AND uid=applicant;
+  IF(checkApp>0) --check if doesn't already exist
     THEN
       RETURN FALSE;
   end if;
+  IF((SELECT isProvider FROM users WHERE users.uid=applicant) = TRUE) --not an applicant
+    THEN
+      RETURN FALSE;
+    END IF;
   INSERT INTO ApplicantsTags VALUES(applicant,theTag);
   RETURN TRUE;
 END;
 $$ LANGUAGE plpgsql;
 
 --Add tag to project
-CREATE OR REPLACE FUNCTION projectTag(theTag int, provider int, project varchar[20]) RETURNS boolean AS $$
+CREATE OR REPLACE FUNCTION projectTag(theTag int, provider int, project varchar(20)) RETURNS boolean AS $$
+DECLARE
+    checkProj int;
 BEGIN
-  IF(SELECT count(*) FROM ProjectTags where tid=theTag and p_name=project>0) --check if doesn't already exist
+  SELECT INTO checkProj count(*) FROM ProjectTags where p_name=project AND tid=theTag;
+  IF(checkProj>0) --check if doesn't already exist
     THEN
       RETURN FALSE;
   end if;
-  INSERT INTO ProjectTags VALUES(provider, p_name,theTag);
+  IF((SELECT isProvider FROM users WHERE users.uid=provider) = FALSE) --not a provider
+    THEN
+      RETURN FALSE;
+    END IF;
+  INSERT INTO ProjectTags VALUES(provider, project,theTag);
   RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
+--View all tags associated with an applicant
+CREATE OR REPLACE FUNCTION viewApplicantTags(applicant int) RETURNS TABLE(tagID int, tagDescr varchar(20)) AS $$
+BEGIN
+  DROP TABLE IF EXISTS combineTags;
+  CREATE  TABLE combineTags AS
+      SELECT * FROM tags NATURAL JOIN applicantsTags;
+  RETURN QUERY
+  SELECT ct.tid, ct.name FROM combineTags ct WHERE ct.uid = applicant;
+END;
+$$ LANGUAGE plpgsql;
+
+--View all tags associated with a project
+CREATE OR REPLACE FUNCTION viewProjectTags(provider int, projectName varchar(20)) RETURNS TABLE(tagID int, tagDescr varchar(20)) AS $$
+BEGIN
+  DROP TABLE IF EXISTS combineTags;
+  CREATE  TABLE combineTags AS
+      SELECT * FROM tags NATURAL JOIN projectTags;
+  RETURN QUERY
+  SELECT ct.tid, ct.name FROM combineTags ct WHERE ct.uid = provider AND ct.p_name=projectName;
 END;
 $$ LANGUAGE plpgsql;
