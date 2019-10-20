@@ -111,3 +111,17 @@ BEGIN
   SELECT ct.tid, ct.name FROM combineTags ct WHERE ct.uid = provider AND ct.p_name=projectName;
 END;
 $$ LANGUAGE plpgsql;
+
+--Search for projects that have a tag
+CREATE OR REPLACE FUNCTION searchProjects(tag varchar(20)) RETURNS TABLE(uid int, p_name varchar(20),description varchar(5000))  AS $$
+BEGIN
+  DROP TABLE IF EXISTS combineTags;
+  DROP TABLE IF EXISTS combineProjects;
+  CREATE  TABLE combineTags AS
+      SELECT * FROM tags NATURAL JOIN projectTags;
+  CREATE TABLE combineProjects AS
+      SELECT * FROM combineTags NATURAL JOIN projects;
+  RETURN QUERY
+  SELECT cp.uid, cp.p_name, cp.description FROM combineProjects cp WHERE cp.name=tag;
+END;
+$$ LANGUAGE plpgsql;

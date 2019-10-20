@@ -34,3 +34,5 @@ SELECT * FROM projectTag(1,3,'CS Capstone');
 SELECT * FROM viewApplicantTags(3);
 
 SELECT * FROM viewProjectTags(1, 'CS Capstone');
+
+SELECT * FROM searchProjects('CS');

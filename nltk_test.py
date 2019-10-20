@@ -1,9 +1,10 @@
 import nltk
-
+import psycopg2
 nltk.data.path=['.\\nltk_data']
-#print(nltk)
-#nltk.tree.demo()
-def main():
+
+
+#demo of nltk library: natural language processing 
+def nltk():
 	testStr=[]
 	testStr.append("this project entails building a match-making website for students projects, like the capstone project you’re bidding on.")
 	testStr.append("a nice interface for two different stakeholders, namely (a) project providers, such as faculty and NGOs, and (b) project seekers, such as students. We will need to interview stakeholders and create a requirements document describing the needed elements.")
@@ -21,5 +22,30 @@ def main():
 				adjectives.append(word)
 		print("\nJust the nouns: \n"+str(nouns)+"\n")
 		print("\nJust the adjectives: \n"+str(adjectives)+"\n")
+		
+#demo of using psycopg2 library; postgresql connector
+def sql():
+	print("enter username")
+	un=input()
+	print("enter password")
+	pw=input()
+	con=psycopg2.connect(database="postgres",user=un,password=pw,host="localhost",port="5432")
+	executor=con.cursor()
+	executor.execute(
+	'''
+	SELECT * FROM searchProjects('CS');
+	''')
+	returned=executor.fetchall()
+	numRow=len(returned[0])
+	print("number of rows: ", numRow)
+	for row in returned:
+		for column in range(numRow):
+			print(row[column])
 	
+	
+def main():
+	#nltk()
+	sql()
+	
+
 main()
