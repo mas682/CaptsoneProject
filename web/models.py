@@ -61,7 +61,7 @@ class User(db.Model):
 	password  = db.Column(db.String(64), nullable = False)
 	provider = db.Column(db.Boolean,    nullable = False)
 	admin = db.Column(db.Boolean, nullable = False)
-	projects = db.relationship("Projects", backref="provider")
+
 
 
 	#def __repr__(self):

@@ -8,34 +8,48 @@
 	<form id = "form1" action = "{{url_for('create_project') }}" method="Post" novalidate>
 		{{ form.hidden_tag() }}
 		<dt>{{form.title.label}}
- 		<dd>{{form.title(id='proj_title')}}
 		{% if form.title.errors %}
+			{{form.title(class = "project_input_box_error", id = "project_title_input")}}
 			{% for error in form.title.errors %}
-				<span style = "color:red">{{ error }}</span>
+				<span class="input_error">{{ error }}</span>
 			{% endfor %}
+		{% else %}
+			{{form.title(class = "project_input_box", id = "project_title_input")}}
 		{% endif %}
 		<dt>{{form.background.label}}
-		<dd>{{form.background}}
 		{% if form.background.errors %}
+			{{form.background(class = "project_input_box_error", id = "project_background_input")}}
 			{% for error in form.background.errors %}
-				<span style = "color:red">{{ error }}</span>
+				<span class="input_error">{{ error }}</span>
 			{% endfor %}
+		{% else %}
+			{{form.background(class = "project_input_box", id = "project_background_input")}}
 		{% endif %}
 		<dt>{{form.description.label}}
-		<dd>{{form.description}}
 		{% if form.description.errors %}
+			{{form.description(class = "project_input_box_error", id = "project_description_input")}}
 			{% for error in form.description.errors %}
-				<span style = "color:red">{{ error }}</span>
+				<span class = "input_error">{{ error }}</span>
 			{% endfor %}
+		{% else %}
+			{{form.description(class = "project_input_box", id = "project_description_input")}}
 		{% endif %}
 		<dt>{{form.email.label}}
-		<dd>{{form.email}}
 		{% if form.email.errors %}
+			{{form.email(class = "project_input_box_error")}}
 			{% for error in form.email.errors %}
-				<span style = "color:red">{{ error }}</span>
+				<span class = "input_error">{{ error }}</span>
 			{% endfor %}
+		{% else %}
+			{{form.email(class = "project_input_box")}}
 		{% endif %}
-		<dd> {{form.submit()}}
+		<div class = "submit_data_button">
+			<div>
+				<br>
+				{{form.submit()}}
+			</div>
+		</div>
+		<br>
 	</form>
 
 {% endblock %}
