@@ -1,0 +1,8 @@
+In the previous sprint we did our preliminary survey and added the ability to add projects for project providers.  We are still working on 
+having the ability to edit projects once listed but this is almost done.  We also added the ability to add tags to the projects and assoicated 
+them with the projects.  In the next phase, we will add the ability to have applicants have tags associated with their accounts so that we 
+can suggest projects for them.  We will also add the ability to let the applicants search throught available projects.  While doing this, we 
+also plan on working on a more focused survey to get better results that Mosse is going to send around for us.  
+The user stories that we plan on addressing are:
+As an applicant, I want to be able to search for a project to work on that meets certain interests of mine so that I can narrow down what projects are available for me to participate in.
+As a project provider, I want to be able to edit and/or delete the project description that I list as I may make a mistake in it or have some additional information to add to it.
