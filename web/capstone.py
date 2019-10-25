@@ -1,12 +1,14 @@
 from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash
+from sqlalchemy.exc import IntegrityError
 from app import *
-from models import db, User, Projects, Tags
+from models import db, Tag, User, Project, Applicantsclass
 from ProjectForm import ProjectForm, TagForm
 
 
 #########################################################################################
 # Utilities
 #########################################################################################
+
 
 # Given a username, gives
 def get_user_id(username):
@@ -61,26 +63,30 @@ def register():
 
 	error = None
 	if request.method == 'POST':
-		if not request.form['email'] or '@' not in request.form['email']:
-			error = 'You have to enter a valid email address'
+		if not request.form['email'] or not request.form['email'].endswith("@pitt.edu"):
+			error = 'You have to enter a valid email address that belongs to the pitt.edu domain'
 		elif not request.form['password']:
 			error = 'You have to enter a password'
 		elif request.form['password'] != request.form['password2']:
 			error = 'The two passwords do not match'
-		elif get_user_id(request.form['email']) is not None:
-			error = 'The username is already taken'
 		elif not request.form.get('applicant') and not request.form.get('provider'):
 			error = "You did not pick applicant or project proivder"
 		else:
-			db.session.add(User(
-				email = request.form['email'],
-				password = request.form['password'],
-				provider = False,
-				admin = False))
-			db.session.commit()
+			try:
+				db.session.add(User(
+					email = request.form['email'],
+					password = request.form['password'],
+					provider = False,
+					admin = False))
+				db.session.commit()
+			# error check if this email is already associated with some account
+# need to make it so that error occurs like project form errors
+			except IntegrityError:
+				db.session.rollback()
+				error = 'The username is already taken'
+				return render_template('register.html', error=error)
 			flash('You were successfully registered! Please log in.')
 			return redirect(url_for('login'))
-
 	return render_template('register.html', error=error)
 
 @app.route('/register_provider', methods=['GET', 'POST'])
@@ -98,17 +104,20 @@ def registerProvider():
 			error = 'You have to enter a password'
 		elif request.form['password'] != request.form['password2']:
 			error = 'The two passwords do not match'
-		elif get_user_id(request.form['email']) is not None:
-			error = 'The username is already taken'
 		elif not request.form.get('applicant') and not request.form.get('provider'):
 			error = "You did not pick applicant or project proivder"
 		else:
-			db.session.add(User(
-				email = request.form['email'],
-				password = request.form['password'],
-				provider = True,
-				admin = False))
-			db.session.commit()
+			try:
+				db.session.add(User(
+					email = request.form['email'],
+					password = request.form['password'],
+					provider = True,
+					admin = False))
+				db.session.commit()
+			except IntegrityError:
+				db.session.rollback()
+				error = 'The username is already taken'
+				return render_template('register_provider.html', error=error)
 			flash('New provider successfully registered!')
 			return redirect(url_for('home'))
 
@@ -128,14 +137,17 @@ def logout():
 @app.route('/projects/<project_id>', methods=['GET', 'POST'])
 #def books(book_id=None):
 def projects(project_id = None):
-	form2 = ProjectForm(request.form)
-	tag_form = TagForm(request.form)
 	print(str(request.method))
+	project = None
 	if project_id is not None:
-		project = Projects.query.filter_by(pid=project_id).first()
+		project = Project.query.filter_by(pid=project_id).first()
 		if project is None:
 			abort(404)
 	if request.method == 'POST' and project_id is not None:
+		form2 = ProjectForm(request.form, background=project.background, description=project.description,
+					email=project.contact, title=project.title)
+		tag_form = TagForm(request.form)
+		project_removal_error = False
 		# this case would be if the provider is updating the project
 		list = []
 		if 'edit' not in session:
@@ -143,14 +155,16 @@ def projects(project_id = None):
 		else:
 			list = session['edit']
 		print(str(request.form))
-		print("55. " + str(list))
 		if 'edit_title' in request.form:
 			if 'edit_title' not in list:
 				list.append('edit_title')
 			session['edit'] = list
 		elif 'update_title' in request.form:
+			if not form2.validate_on_submit():
+				if form2.title.errors:
+					return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			if 'edit_title' not in list:
-				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			else:
 				list.remove('edit_title')
 				session['edit'] = list
@@ -161,8 +175,11 @@ def projects(project_id = None):
 				list.append('edit_background')
 			session['edit']=list
 		elif 'update_background' in request.form:
+			if not form2.validate_on_submit():
+				if form2.background.errors:
+					return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			if 'edit_background' not in list:
-				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			else:
 				list.remove('edit_background')
 				session['edit'] = list
@@ -173,8 +190,11 @@ def projects(project_id = None):
 				list.append('edit_description')
 			session['edit']=list
 		elif 'update_description' in request.form:
+			if not form2.validate_on_submit():
+				if form2.description.errors:
+					return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			if 'edit_description' not in list:
-				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			else:
 				list.remove('edit_description')
 				session['edit'] = list
@@ -185,8 +205,11 @@ def projects(project_id = None):
 				list.append('edit_contact')
 			session['edit']=list
 		elif 'update_contact' in request.form:
+			if not form2.validate_on_submit():
+				if form2.email.errors:
+					return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			if 'edit_contact' not in list:
-				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			else:
 				list.remove('edit_contact')
 				session['edit'] = list
@@ -201,76 +224,86 @@ def projects(project_id = None):
 			session['removed_tags'] = []
 			for tag in project.p_tags:
 				session['tags'].append(tag.name)
-			return render_template('project.html', project=project, edit=session['edit'], form=ProjectForm(
-					background=project.background, description=project.description, title=project.title),tag_form = tag_form, tags=session['tags'])
+			return render_template('project.html', project=project, edit=session['edit'], form=form2,tag_form = tag_form, tags=session['tags'], remove_err = project_removal_error)
 		elif 'add_tag' in request.form:
 			temp_tags = session['tags']
 			if tag_form.tags.data and tag_form.validate_on_submit():
 				if tag_form.tags.data not in temp_tags:
 					temp_tags.append(tag_form.tags.data)
 					session['tags'] = temp_tags
-				return render_template('project.html', project=project, edit=session['edit'], form=ProjectForm(
-						background=project.background, description=project.description, title=project.title),tag_form = tag_form, tags=temp_tags)
+				return render_template('project.html', project=project, edit=session['edit'], form=form2 ,tag_form = tag_form, tags=temp_tags, remove_err = project_removal_error)
 		elif 'submit' in request.form:
 			temp_tags = session['tags']
 			session['removed_tags'].append(request.form['submit'])
 			temp_tags.remove(request.form['submit'])
 			session['tags'] = temp_tags
-			return render_template('project.html', project=project, edit=session['edit'], form=ProjectForm(
-					background=project.background, description=project.description, title=project.title),tag_form = tag_form, tags=temp_tags)
+			return render_template('project.html', project=project, edit=session['edit'], form=form2,tag_form = tag_form, tags=temp_tags, remove_err = project_removal_error)
 		elif 'update_tags' in request.form:
 			# if there are tags in the dict...returns false if empty
 			list.remove('edit_tags')
 			session['edit'] = list
 			temp_tags = session['tags']
 			removed_tags = session['removed_tags']
+			# if there are tags that exist for the project session
 			if temp_tags:
 				# get each tag in the dict
 				for tag in temp_tags:
 					# see if the tag already exists in the database
-					tag_list=Tags.query.filter_by(name = tag)
-					# if the tag exists, simply associate this project with it
-					if tag_list.first():
-						if tag == tag_list.first().name:
-							print("The tag " + str(tag) + " already existed.")
-							temp_tag = tag_list.first()
-							project.p_tags.append(temp_tag)
-							# otherwise, need to create the tag in the database and
-							# add the project to it
-						else:
-							db.session.add(Tags(name=tag))
-							db.session.commit()
-							temp_tag=Tags.query.filter_by(name=tag).first()
-							project.p_tags.append(temp_tag)
-					else:
-						db.session.add(Tags(name=tag))
-						db.session.commit()
-						temp_tag=Tags.query.filter_by(name=tag).first()
+					skip = False
+					# makes sure the tag is not already associated with a project
+					for real_tag in project.p_tags:
+						real_tag = real_tag.name.lower()
+						tag = tag.lower()
+						if real_tag == tag:
+							skip = True
+							break
+					# skip the tag if it is already associated with the project
+					if skip:
+						skip = False
+						continue
+					tag = tag.capitalize()
+					temp_tag = Tag(name=tag)
+					# try to create the tag in the database
+					try:
+						db.session.add(temp_tag)
 						project.p_tags.append(temp_tag)
 						db.session.commit()
+					# if fails, means the tag already exists
+					except IntegrityError:
+						db.session.rollback()
+						temp_tag = Tag.query.filter_by(name=tag).first()
+						project.p_tags.append(temp_tag)
+						db.session.commit()
+# could have error here if someone deletes the tag... ^^^^
+			# if there are tags that need to be removed from the project
 			if removed_tags:
 				for tag in removed_tags:
-					db_tag = Tags.query.filter_by(name=tag).first()
-					project.p_tags.remove(db_tag)
-					db.session.commit()
+					tag = tag.lower()
+					tag = tag.capitalize()
+					try:
+						db_tag = Tag.session.query.filter_by(name=tag).first()
+						project.p_tags.remove(db_tag)
+						db.session.commit()
+					except:
+						print("Tag no longer in the system")
 		elif 'remove_project' in request.form:
 			if 'remove_project' not in list:
 				list.append('remove_project')
 			session['edit']=list
 		elif 'remove_project_final' in request.form:
 			if 'remove_project' not in list:
-				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form)
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
 			else:
-				list.remove('remove_project')
 				title = request.form['remove_project_title']
 				if title == project.title:
 					db.session.delete(project)
 					db.session.commit()
+					list.remove('remove_project')
 					return redirect(url_for('home'))
 				else:
+					project_removal_error = "\"" + str(title) + "\"" + " does not match the project title"
 					print(str(title) + " does not match the project title")
-		return render_template('project.html', project=project, edit=session['edit'], form=ProjectForm(
-			background=project.background, description=project.description, title=project.title),tag_form = tag_form)
+		return render_template('project.html', project=project, edit=session['edit'], form=form2,tag_form = tag_form, remove_err = project_removal_error)
 	elif project_id is None:
 		if 'edit' in session:
 			session.pop('edit', None)
@@ -280,11 +313,11 @@ def projects(project_id = None):
 	else:
 		if 'edit' in session:
 			session.pop('edit', None)
-		project = Projects.query.filter_by(pid = project_id).first()
+		project = Project.query.filter_by(pid = project_id).first()
 		if project is None:
 			abort(404)
 		else:
-			return render_template('project.html', project = project, form=form2, edit=[])
+			return render_template('project.html', project = project, edit=[], form=ProjectForm(request.form))
 
 
 @app.route('/create_project', methods=['Get', 'Post'])
@@ -317,7 +350,12 @@ def create_tags():
 	temp_tags = my_dict['tags']
 	if request.method =='POST':
 		if form.submit2.data and form.validate_on_submit():
-			temp_tags.append(form.tags.data)
+			new_tag = form.tags.data.lower()
+			new_tag = new_tag.capitalize()
+			if new_tag in temp_tags:
+				pass
+			else:
+				temp_tags.append(new_tag)
 			session['form1']['tags'] = temp_tags
 			flash(form.tags.data)
 			return render_template('create_tags.html', form=form, tags=temp_tags)
@@ -328,40 +366,40 @@ def create_tags():
 			flash(form.tags.data)
 			return render_template('create_tags.html', form=form, tags=temp_tags)
 		elif 'submit3' in request.form:
-			db.session.add(Projects(
+			db.session.add(Project(
 				title = my_dict['title'],
 				background = my_dict['background'],
 				description = my_dict['description'],
 				contact = my_dict['contact'],
-				prov_id = g.user.user_id))
+				user = g.user.user_id))
 			db.session.commit()
 		# if there are tags in the dict...returns false if empty
-		if temp_tags:
+			if temp_tags:
 # this line could cause issues if two projects have the same title....
-			project = Projects.query.filter_by(title = my_dict['title']).first()
-			# get each tag in the dict
-			for tag in temp_tags:
-				# see if the tag already exists in the database
-				tag_list=Tags.query.filter_by(name = tag)
-				# if the tag exists, simply associate this project with it
-				if tag_list.first():
-					if tag == tag_list.first().name:
-						print("The tag " + str(tag) + " already existed.")
-						temp_tag = tag_list.first()
-						project.p_tags.append(temp_tag)
-						# otherwise, need to create the tag in the database and
-						# add the project to it
+				project = Project.query.filter_by(title = my_dict['title']).first()
+				# get each tag in the dict
+				for tag in temp_tags:
+					# see if the tag already exists in the database
+					tag_list=Tag.query.filter_by(name = tag)
+					# if the tag exists, simply associate this project with it
+					if tag_list.first():
+						if tag == tag_list.first().name:
+							print("The tag " + str(tag) + " already existed.")
+							temp_tag = tag_list.first()
+							temp_tag.projects.append(project)
+							# otherwise, need to create the tag in the database and
+							# add the project to it
+						else:
+							db.session.add(Tag(name=tag))
+							db.session.commit()
+							temp_tag=Tag.query.filter_by(name=tag).first()
+							temp_tag.projects.append(project)
 					else:
-						db.session.add(Tags(name=tag))
+						db.session.add(Tag(name=tag))
 						db.session.commit()
-						temp_tag=Tags.query.filter_by(name=tag).first()
-						project.p_tags.append(temp_tag)
-				else:
-					db.session.add(Tags(name=tag))
+						temp_tag=Tag.query.filter_by(name=tag).first()
+						temp_tag.projects.append(project)
 					db.session.commit()
-					temp_tag=Tags.query.filter_by(name=tag).first()
-					project.p_tags.append(temp_tag)
-				db.session.commit()
 			# upon adding a project, return to the home page of the user
 			return redirect(url_for('home'))
 	return render_template('create_tags.html', form=form, tags=temp_tags)
@@ -402,14 +440,14 @@ def home():
 	else:
 		if g.user:
 			error = "You are logged in"
-			projects = Projects.query.filter_by(prov_id = g.user.user_id).all()
+			projects = Project.query.filter_by(user = g.user.user_id).all()
 			for project in projects:
 				print(str(project.pid))
 				print(str(project.title))
 				print(str(project.background))
 				print(str(project.description))
-				for Tag in project.p_tags:
-					print("tag: " + str(Tag.name))
+				#for Tag in project.p_tags:
+				#	print("tag: " + str(Tag.name))
 			flash(error)
 			return render_template('home.html', my_projects=projects)
 		else:

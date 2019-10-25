@@ -18,6 +18,7 @@ POSTGRES = {
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:\
 %(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 
+#postgresql://postgres:password@localhost:5432/capstone
 #SQLALCHEMY_DATABASE_URI = 'postgresql:///' + os.path.join(app.root_path, 'library.db')
 #'postgresql://%(user)s:\%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 SQLALCHEMY_TRACK_MODIFICATIONS = False

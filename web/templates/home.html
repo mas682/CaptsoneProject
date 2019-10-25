@@ -23,9 +23,11 @@
 						<td> <a class = "projectLink" href="{{ url_for('projects', project_id=project.pid) }}">{{project.title}}</td>
 						<td>
 							{% if project.p_tags %}
+								<ul>
 								{% for tag in project.p_tags %}
-									{{tag.name}},
+									<li>{{tag.name}}
 								{% endfor %}
+								</ul>
 							{% endif %}
 						</td>
 						<td> {{project.contact}} </td>

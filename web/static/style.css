@@ -156,6 +156,7 @@ main {
 	margin-left: 5%;
 	margin-right: 5%;
 	font-size: 1em;
+	font-weight: normal;
 	border: 2px solid #D3D3D3;
 }
 
@@ -164,21 +165,28 @@ main {
 	border-radius: 5px;
 	margin-left: 5%;
 	margin-right: 5%;
-	font-size: 1em;
+	font-family: sans-serif;
 	border: 2px solid red;
 }
 
 #project_background_input {
 	height: 200px;
+	font-family: sans-serif;
 }
 
 #project_description_input {
 	height: 200px;
+	font-family: sans-serif;
 }
 
 .input_error{
     color:red;
 	margin-left: 5%;
+}
+
+.submit_changes_button {
+	margin-left: 5%;
+	margin-top: 2px;
 }
 /************************************************************
   create_tags page
@@ -270,7 +278,7 @@ main {
 	width: 100%;
 	padding-top: 10px;
 	align-content: flex-end;
-	padding-right: 2.5%;
+	padding-right: 5%;
 }
 /*************************************************************
   home page and login form
@@ -406,13 +414,6 @@ tr:nth-child(even) {
 	display: block;
 }
 
-#remove_project_input {
-	width: 95%;
-	border-radius: 5px;
-	margin-left: 2.5%;
-	margin-right: 2.5%;
-}
-
 #remove_project_button {
 	border-radius: 2px;
 	background: red;
@@ -428,7 +429,7 @@ tr:nth-child(even) {
   Inputs
 *************************************************************/
 
-input, button {
+button {
 	/* "inherit" means "whatever the enclosing element's font size is."
 	Actually most (all?) CSS properties can be "inherit"! */
 	font-size: inherit;

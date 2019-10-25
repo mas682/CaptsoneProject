@@ -32,13 +32,15 @@
     <div id = "tags_created">
         {{ form.hidden_tag() }}
         {% for tag in tags %}
-            <div class = "submit_data_button" id = "tag_button_container">
+            <div id = "tag_button_container">
                 <input type="submit" name="submit" value="{{tag}}" id="TagButton">
             </div>
         {% endfor %}
     </div>
 </form>
-<div id = "createProjectButtonBox">
-    <button type="submit" name="submit3" form="tag_form" value = "create">Create Project</button>
+<div class = "submit_data_button">
+    <div>
+        <button type="submit" name="submit3" form="tag_form" value = "create">Create Project</button>
+    </div>
 </div>
 {% endblock %}

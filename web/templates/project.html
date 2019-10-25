@@ -15,75 +15,73 @@
                 <button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">Edit Title</button>
             <p> {{project.title}}
         {% else %}
-                {{form.title(class = "project_input_box", id = "project_title_input", form="editProjectForm")}}
-                {% if form.title.errors %}
-                    {% for error in form.title.errors %}
-                        <span id="formError">{{ error }}</span>
-                    {% endfor %}
-                {% endif %}
-                <br>
-				<dd>
-				<div>
+				{% if form.title.errors %}
+					{{form.title(class = "project_input_box_error", id = "project_title_input", form="editProjectForm")}}
+					{% for error in form.title.errors %}
+						<span class="input_error">{{ error }}</span>
+					{% endfor %}
+				{% else %}
+                	{{form.title(class = "project_input_box", id = "project_title_input", form="editProjectForm")}}
+				{% endif %}
+				<div class = "submit_changes_button">
 					<button type="submit" name="update_title" form="editProjectForm">Update Title</button>
 				</div>
 				<br>
-				</dd>
         {% endif %}
         <h2 class = "projectHeaders">Background</h2>
         {% if 'edit_background' not in edit %}
             <button type="submit" form = "editProjectForm" class = "editProjectButton" name="edit_background">Edit Background</button>
             <p> {{project.background}}
         {% else %}
-            {{form.background(class = "project_input_box", id = "project_background_input", form="editProjectForm")}}
-            {% if form.background.errors %}
-                {% for error in form.title.errors %}
-                    <span id="formError">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-            <br>
-			<dd>
-			<div>
+			{% if form.background.errors %}
+				{{form.background(class = "project_input_box_error", id = "project_background_input", form="editProjectForm")}}
+				{% for error in form.background.errors %}
+					<span class="input_error">{{ error }}</span>
+				{% endfor %}
+			{% else %}
+            	{{form.background(class = "project_input_box", id = "project_background_input", form="editProjectForm")}}
+			{% endif %}
+			<div class = "submit_changes_button">
 				<button type="submit" name="update_background" form="editProjectForm">Update Background</button>
 			</div>
 			<br>
-			</dd>
         {% endif %}
         <h2 class = "projectHeaders">Description</h2>
         {% if 'edit_description' not in edit %}
             <button type="submit" class = "editProjectButton" form="editProjectForm" name = "edit_description">Edit Description</button>
             <p> {{project.description}}
         {% else %}
-            {{form.description(class = "project_input_box", id = "project_description_input", form="editProjectForm")}}
-            {% if form.title.errors %}
-                {% for error in form.description.errors %}
-                    <span id="formError">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
-            <br>
-			<dd>
-			<div>
+			{% if form.description.errors %}
+				{{form.description(class = "project_input_box_error", id = "project_description_input", form="editProjectForm")}}
+				{% for error in form.description.errors %}
+					<span class = "input_error">{{ error }}</span>
+				{% endfor %}
+			{% else %}
+            	{{form.description(class = "project_input_box", id = "project_description_input", form="editProjectForm")}}
+			{% endif %}
+			<div class = "submit_changes_button">
 				<button type="submit" name="update_description" form="editProjectForm">Update Description</button>
 			</div>
 			<br>
-			</dd>
         {% endif %}
         <h2 class = "projectHeaders">Contact Email</h2>
         {% if 'edit_contact' not in edit %}
             <button type="submit" class = "editProjectButton" form="editProjectForm" name = "edit_contact">Edit Contact Email</button>
             <p> {{project.contact}}
         {% else %}
-            <dd>{{form.email(value=project.contact, form="editProjectForm")}}</dd>
-            {% if form.title.errors %}
-                {% for error in form.email.errors %}
-                    <span id="formError">{{ error }}</span>
-                {% endfor %}
-            {% endif %}
+			{% if form.email.errors %}
+				{{form.email(class = "project_input_box_error", form="editProjectForm")}}
+				{% for error in form.email.errors %}
+					<span class = "input_error">{{ error }}</span>
+				{% endfor %}
+			{% else %}
+            	{{form.email(class = "project_input_box", form="editProjectForm")}}
+			{% endif %}
             <br>
-			<dd>
-			<div>
+			<div class = "submit_changes_button">
 				<button type="submit" name="update_contact" form="editProjectForm">Update Contact Email</button>
 			</div>
-			</dd>
+			<br>
         {% endif %}
         <h2 class = "projectHeaders">Project Tags</h2>
         {% if 'edit_tags' not in edit %}
@@ -130,11 +128,11 @@
                 	{% endfor %}
             	</div>
         	</form>
-			<div id = "createProjectButtonBox">
+			<div class = "submit_changes_button">
 		    	<button type="submit" name="update_tags" form="tag_form" value = "create">Update Tags</button>
 			</div>
         {% endif %}
-		{% if g.user.user_id == project.prov_id %}
+		{% if g.user.user_id == project.user %}
 		<form id = "removeProjectForm" action = "" method="Post">
 			{{ form.hidden_tag()}}
 		</form>
@@ -143,9 +141,15 @@
 				<div class = "submit_data_button">
 					<button type="submit" name="remove_project" form="removeProjectForm">Remove Project</button>
 				</div>
+				<br>
 			{% else %}
 				<h2 class = "projectHeaders">Enter project name to remove:</h2>
-				<input type="text" id = "remove_project_input" name="remove_project_title" size="100" value="" form="removeProjectForm">
+				{% if remove_err %}
+					<input type="text" class = "project_input_box_error" name="remove_project_title" size="100" value="" form="removeProjectForm">
+					<span class="input_error">{{remove_err}}</span>
+				{% else %}
+					<input type="text" class = "project_input_box" name="remove_project_title" size="100" value="" form="removeProjectForm">
+				{% endif %}
 				<div class = "submit_data_button">
 					<button id = "remove_project_button" type="submit" name="remove_project_final" form="removeProjectForm">Remove Project</button>
 				</div>

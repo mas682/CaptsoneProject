@@ -1,12 +1,13 @@
 from flask_wtf import Form
 from wtforms import StringField, SubmitField, validators, TextAreaField
-from wtforms.validators import Required, DataRequired, InputRequired
+from wtforms.fields.html5 import EmailField
+from wtforms.validators import Required, DataRequired, InputRequired, Email
 
 class ProjectForm(Form):
     title = StringField("Title:",  validators=[InputRequired(message="You must enter a title")])
     background = TextAreaField("Background:", validators=[InputRequired(message="You must enter background information")])
     description = TextAreaField("Description:", validators=[InputRequired(message="You must enter a description")])
-    email = StringField("Contact Email:", validators=[InputRequired(message="You must enter a contact email")])
+    email = EmailField("Contact Email:", validators=[InputRequired(message="You must enter a contact email"), Email()])
     submit = SubmitField('Next')
 
 class TagForm(Form):
