@@ -1,8 +1,8 @@
 from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash
 from sqlalchemy.exc import IntegrityError
 from app import *
-from models import db, Tag, User, Project, Applicantsclass
-from ProjectForm import ProjectForm, TagForm
+from models import db, Tag, User, Project, Applicantsclass, t_projecttags
+from ProjectForm import ProjectForm, TagForm, SearchForm
 
 
 #########################################################################################
@@ -305,11 +305,28 @@ def projects(project_id = None):
 					print(str(title) + " does not match the project title")
 		return render_template('project.html', project=project, edit=session['edit'], form=form2,tag_form = tag_form, remove_err = project_removal_error)
 	elif project_id is None:
+		searchForm = SearchForm()
+		tag = None
+		projects = []
+		if request.method == "POST":
+			if searchForm.validate_on_submit():
+				tag = searchForm.search_tags.data
+				print(str(tag))
+				actual_tag = Tag.query.filter_by(name=tag).first()
+				if actual_tag is None:
+					projects = None
+				else:
+					for proj in actual_tag.projects:
+						projects.append(proj)
+		else:
+			projects = Project.query.all()
 		if 'edit' in session:
 			session.pop('edit', None)
+		for proj in projects:
+			print(str(proj.title))
 		# just a error check for now
 		# will eventually want to show a list of all projects
-		return render_template('projects.html')
+		return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=6, current_page=2)
 	else:
 		if 'edit' in session:
 			session.pop('edit', None)

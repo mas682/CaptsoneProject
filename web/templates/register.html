@@ -10,17 +10,16 @@
 	{% endif %}
 
 	<form action="" method="post">
-		<dl>
-			<dt>E-Mail:
-			<dd><input type="text" name="email" size="30" value="{{ request.form.email }}">
-			<dt>Password:
-			<dd><input type="password" name="password" size="30">
-			<dt>Password <small>(repeat)</small>:
-			<dd><input type="password" name="password2" size="30">
-			<dt>Type of account:
-			<dd><input type="checkbox" name="applicant" value = "app"><label id = "applicant" for="checkbox">Project Applicant</label>
-			<dd><input type="checkbox" name="provider" value = "prov"><lable id = "provider" for="checkbox">Project Provider</label>
-		</dl>
-		<input type="submit" value="Sign Up">
+		<h4 class = "projectHeaders">E-Mail:</h4>
+		<input class= "project_input_box" type="text" name="email" size="30" value="{{ request.form.email }}">
+		<h4 class = "projectHeaders">Password:</h4>
+		<input class= "project_input_box" type="password" name="password" size="30">
+		<h4 class = "projectHeaders">Password<small>(repeat)</small>:</h4>
+		<input class= "project_input_box" type="password" name="password2" size="30">
+		<h4 class = "projectHeaders">Type of account:</h4>
+		<dd><input type="checkbox" name="applicant" value = "app"><label id = "applicant" for="checkbox">Project Applicant</label></dd>
+		<dd><input type="checkbox" name="provider" value = "prov"><lable id = "provider" for="checkbox">Project Provider</label></dd>
+		</br>
+		<dd><input type="submit" value="Sign Up"></dd>
 	</form>
 {% endblock %}

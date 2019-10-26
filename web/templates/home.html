@@ -9,14 +9,15 @@
 	{# this is the basic test we're using to see if someone is logged in.
 		you'll have to extend this logic further... #}
 	{% if g.user %}
-			<p>Welcome back {{g.user.username}}!
+			<p>Welcome back!
+		{% if g.user.provider %}
 			{% if my_projects %}
-				<h3> Your projects are listed below:
-				<table>
+				<h3> Your listed projects are below:
+				<table class = "projectTable">
 					<tr>
-						<th> Title </th>
-						<th> Tags </th>
-						<th> Contact </th>
+						<th class = "tableTitle"> Title </th>
+						<th class = "tableTags"> Tags </th>
+						<th class = "tableContact"> Contact </th>
 					</tr>
 				{% for project in my_projects %}
 					<tr>
@@ -35,8 +36,17 @@
 				{% endfor %}
 				</table>
 			{% endif %}
-
-
+		{% endif %}
+		<h3> Your suggested projects are listed below:
+		<table class = "projectTable">
+			<tr>
+				<th class = "tableTitle"> Title </th>
+				<th class = "tableSummary"> Summary </th>
+			</tr>
+			<tr>
+				<td> Will hold the project title </td>
+				<td class = "tableSummaryBox"> Will hold a summary of the project or tags?</td>
+		</table>
 	{% else %}
 		<div class="container">
 			<div id = "intro">
@@ -55,8 +65,8 @@
 				</div>
 				<div id = "loginForm">
 					<form action="" method="post">
-						<input type="text" name="username" class="login_input" placeholder="Username" size="15" value="{{ request.form.username }}">
-						<input type="password" name="password" class = "login_input" placeholder="Password" size="15" value = "{{request.form.password }}">
+						<input type="text" name="username" class="login_input" placeholder="Username" size="15" value="{{ request.form.username }}"></input>
+						<input type="password" name="password" class = "login_input" placeholder="Password" size="15" value = "{{request.form.password }}"></input>
 						<div>
 							<a id= "ForgotPass" href="{{ url_for('logout') }}">Forgot Password?</a>
 						</div>

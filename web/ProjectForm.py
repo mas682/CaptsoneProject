@@ -13,3 +13,6 @@ class ProjectForm(Form):
 class TagForm(Form):
     tags = StringField("Tags:", validators=[InputRequired(message="You must enter text into the textbox to add a tag")])
     submit2 = SubmitField('Add tag')
+
+class SearchForm(Form):
+    search_tags=StringField("Seach by tags:", validators=[InputRequired(message="You must enter a tag")])

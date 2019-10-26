@@ -3,13 +3,81 @@
 {% block title %}User List{% endblock %}
 
 {% block main %}
-	<form action="" method="post">
-		<dl>
-			<dt>Title:
-			<dd><input type="text" name="title" size="30" value="{{ request.form.username }}">
-			<dt>Password:
-			<dd><input type="password" name="password" size="30">
-		</dl>
-		<input type="submit" value="Sign In">
-	</form>
+	{% if projects and user %}
+		<form id = "searchForm" action = "" method="Post" novalidate>
+			{{ form.hidden_tag()}}
+		</form>
+		{% if form.search_tags.errors %}
+			{{form.search_tags(class = "project_input_box_error", id = "search_tag_input", form="searchForm")}}
+			{% for error in form.title.errors %}
+				<span class="input_error">{{ error }}</span>
+			{% endfor %}
+		{% else %}
+			<div id = "insert_tags">
+				<div id = "tagBarLabel">
+					<h3>{{form.search_tags.label()}}
+				</div>
+				<div id = "tagInputBox">
+				{{form.search_tags(class = "inputBox", id = "search_tag_input", form="searchForm")}}
+				</div>
+				<div class = "addTagButton">
+					<button type="submit" name="search" form="searchForm">Search</button>
+				</div>
+			</div>
+		{% endif %}
+		<h3> The current projects are listed below:
+		<table class = "projectTable">
+			<tr>
+				<th class = "tableTitleSearch"> Title </th>
+				<th class = "tableTagsSearch"> Tags </th>
+				<th class = "tableSummarySearch"> Summary </th>
+			</tr>
+			{% for project in projects %}
+			<tr>
+				<td> <a class = "projectLink" href="{{ url_for('projects', project_id=project.pid) }}">{{project.title}}</td>
+				<td>
+					{% if project.p_tags %}
+						<ul>
+						{% for tag in project.p_tags %}
+							<li>{{tag.name}}
+						{% endfor %}
+						</ul>
+					{% endif %}
+				</td>
+				<td class = "tableSummaryBox"> {{project.description}} </td>
+			</tr>
+			{% endfor %}
+		</table>
+		<form id = "editForm" action = "" method="Post" novalidate>
+            {{ form.hidden_tag() }}
+        </form>
+		{% if current_page-2 > 1 %}
+			<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">1</button>
+			<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">...</button>
+			{% if current_page+2 < len %}
+				{% for num in range(current_page-1,current_page+2) %}
+					<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{num}}</button>
+				{% endfor %}
+				<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">...</button>
+				<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{len}}</button>
+			{% else %}
+				{% for num in range(current_page-1,len+1) %}
+					<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{num}}</button>
+				{% endfor %}
+			{% endif %}
+		{% else %}
+			{% if current_page+2 < len %}
+				{% for num in range(1,current_page+2) %}
+					<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{num}}</button>
+				{% endfor %}
+				<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">...</button>
+				<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{len}}</button>
+			{% elif current_page+2 >= len %}
+				{% for num in range(1,len+1) %}
+					<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{num}}</button>
+				{% endfor %}
+			{% endif %}
+		{% endif %}
+		<br>
+	{% endif %}
 {% endblock %}

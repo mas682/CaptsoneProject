@@ -146,6 +146,50 @@ main {
 	color: blue;
 }
 
+
+/*************************************************************
+  project listing tables
+*************************************************************/
+
+.projectTable{
+	width: 90%;
+	margin-left: 5%;
+}
+
+.tableTitle{
+	width: 40%;
+}
+
+.tableTitleSearch {
+	width: 30%;
+}
+
+.tableTags{
+	width: 30%;
+}
+
+.tableTagsSearch{
+	width: 20%;
+}
+
+.tableContact{
+	width: 30%;
+}
+
+.tableSummary{
+	width: 60%;
+}
+
+.tableSummarySearch{
+	width: 40%;
+}
+
+.tableSummaryBox{
+	font-style: normal;
+	font-size: .75em;
+	font-weight: normal;
+	text-align: left;
+}
 /************************************************************
   project input form formatting
 *************************************************************/
@@ -299,15 +343,25 @@ main {
 #loginForm {
 	width: 100%;
 	display: flex;
-	flex-direction: row;
+	flex-direction: column;
 	flex-wrap: wrap;
 }
 
+#signin {
+	font-size: 1em;
+}
 
+#createnew {
+	font-size: 1em;
+}
 #loginTitle {
 	width: 100%;
 	padding-left: 2.5%;
 	font-weight: bold;
+}
+
+#me {
+	background: blue;
 }
 
 #ForgotPass {
@@ -324,6 +378,7 @@ main {
 	border-radius: 5px;
 	width: 95%;
 	margin-left: 2.5%;
+	font-size: 1em;
 }
 #showPass {
 	font-size: 0.5em;
