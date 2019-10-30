@@ -5,6 +5,8 @@ from models import db, Tag, User, Project, Applicantsclass, t_projecttags
 from ProjectForm import ProjectForm, TagForm, SearchForm
 import math
 import operator
+import nltk
+
 
 
 #########################################################################################
@@ -439,6 +441,13 @@ def create_project():
 			flash(form.title.data)
 			return redirect(url_for('create_tags'))
 	return render_template('create_project.html', form=form)
+
+@app.route('/my_tags', methods=['Get', 'Post'])
+def my_tags():
+	if not g.user:
+		return redirect(url_for('home'))
+	tags = Tag.query.all()
+	return render_template('my_tags.html',tags=tags)
 
 @app.route('/create_project/create_tags', methods=['Get', 'Post'])
 def create_tags():

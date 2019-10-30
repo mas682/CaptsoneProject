@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}User List{% endblock %}
+
+{% block main %}
+<form id = "tag_form" action = "" method="Post" novalidate>
+    <div id = "insert_tags">
+        <div id = "tagBarLabel">
+            My Tags
+        </div>
+        <div id = "tag_listing">
+            Your current tags for the project are below. Click on them to remove them.
+        </div>
+    </div>
+</form>
+
+<form id = "added_tags" action = "{{url_for('my_tags')}}" method="Post" novalidate>
+    <div id = "tags_created">
+        {% for tag in tags %}
+            <div id = "tag_button_container">
+                <input type="submit" name="submit" value="{{tag.name}}" id="TagButton">
+            </div>
+        {% endfor %}
+    </div>
+</form>
+{% endblock %}
