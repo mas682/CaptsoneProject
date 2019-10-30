@@ -190,6 +190,91 @@ main {
 	font-weight: normal;
 	text-align: left;
 }
+
+.pageNumberButton {
+	background:none;
+	border:none;
+	margin:0;
+	padding:0;
+	cursor: pointer;
+	font-size: .75em;
+	color: gray;
+}
+
+.pageNumberButtonCurrent {
+	background:none;
+	border:none;
+	margin:0;
+	padding:0;
+	cursor: pointer;
+	font-size: .75em;
+	color: gray;
+	font-weight: bold;
+	text-decoration: underline;
+}
+
+#pageNumberDisplay {
+	background:none;
+	border:none;
+	margin:0;
+	padding:0;
+	font-size: .75em;
+	color: gray;
+}
+
+
+.search_box{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 100%;
+	padding-top: 10px;
+	align-content: flex-start;
+}
+
+.search_bar_label {
+	font-size: 1.5em;
+	color: black;
+	width: 100%;
+	padding-left: 5%;
+}
+
+.searchBox{
+	border-radius: 5px;
+	width: 100%;
+}
+
+.searchInputBox {
+	width: 85%;
+	padding-left: 5%;
+}
+.searchButton {
+	width: 100%;
+}
+
+.addSearchButton {
+	width: 15%;
+	padding-right: 5%;
+}
+
+#page_header {
+	margin-bottom: 5px;
+}
+
+#header_indent {
+	margin-left: 5%;
+	margin-bottom: 0px;
+}
+
+#tagList {
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+
+#proj_title_header {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
 /************************************************************
   project input form formatting
 *************************************************************/

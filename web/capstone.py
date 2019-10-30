@@ -3,6 +3,8 @@ from sqlalchemy.exc import IntegrityError
 from app import *
 from models import db, Tag, User, Project, Applicantsclass, t_projecttags
 from ProjectForm import ProjectForm, TagForm, SearchForm
+import math
+import operator
 
 
 #########################################################################################
@@ -136,7 +138,7 @@ def logout():
 @app.route('/projects', methods=['GET', 'POST'])
 @app.route('/projects/<project_id>', methods=['GET', 'POST'])
 #def books(book_id=None):
-def projects(project_id = None):
+def projects(project_id = None, search_tags = None):
 	print(str(request.method))
 	project = None
 	if project_id is not None:
@@ -304,29 +306,9 @@ def projects(project_id = None):
 					project_removal_error = "\"" + str(title) + "\"" + " does not match the project title"
 					print(str(title) + " does not match the project title")
 		return render_template('project.html', project=project, edit=session['edit'], form=form2,tag_form = tag_form, remove_err = project_removal_error)
+	# if there is not a project ID, this means go to the project page with a listing of the projects
 	elif project_id is None:
-		searchForm = SearchForm()
-		tag = None
-		projects = []
-		if request.method == "POST":
-			if searchForm.validate_on_submit():
-				tag = searchForm.search_tags.data
-				print(str(tag))
-				actual_tag = Tag.query.filter_by(name=tag).first()
-				if actual_tag is None:
-					projects = None
-				else:
-					for proj in actual_tag.projects:
-						projects.append(proj)
-		else:
-			projects = Project.query.all()
-		if 'edit' in session:
-			session.pop('edit', None)
-		for proj in projects:
-			print(str(proj.title))
-		# just a error check for now
-		# will eventually want to show a list of all projects
-		return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=6, current_page=2)
+		return search_projects(request)
 	else:
 		if 'edit' in session:
 			session.pop('edit', None)
@@ -336,6 +318,108 @@ def projects(project_id = None):
 		else:
 			return render_template('project.html', project = project, edit=[], form=ProjectForm(request.form))
 
+# method for handling getting correct projects to return based on search
+# the argument is a string seperated by spaces
+def find_tags(tag=None):
+	# set the search in the cookie
+	session['search'] = tag
+	# get the individual tags within the search
+	tags = tag.split(" ")
+	# get the number of tags in the search
+	tag_length = len(tags)
+	# stores the projects that are assoicated with the tags
+	temp_projects= []
+	# stores the sorted projects based on how many of the tags correspond to the projects
+	sorted_output = []
+	projects = []
+	# add all the projects associated with each individual tag to temp_projects
+	# but do not add duplicates
+	for num in range(tag_length):
+		# get the tag itself
+		tags[num] = tags[num].lower()
+		tags[num] = tags[num].capitalize()
+		temp_tag = Tag.query.filter_by(name=tags[num]).first()
+		# if the tag does not exist in the database, skip to next tag to check
+		if temp_tag is None:
+			continue
+		# if the tag exists, check the projects it is associated with
+		for proj in temp_tag.projects:
+			# if temp_projects does not have this project yet, add it to it
+			if proj not in temp_projects:
+				temp_projects.append(proj)
+	# iterate through all the projects in temp_projects to see how many of the searched for tags
+	# are in each individual project
+	for proj in temp_projects:
+		# counter used to see how many of the searched terms match what is being looked for
+		counter = 0
+		# iterate through the tags that are being searched for
+		for num in range(tag_length):
+			# get the actual tag
+			temp_tag = Tag.query.filter_by(name=tags[num]).first()
+			# if the tag does not exist, skip this search term
+			if temp_tag is None:
+				continue
+			# if the tag to look for is in this project, increment the counter
+			if temp_tag in proj.p_tags:
+				counter = counter + 1
+		# after the inner for loop, add a (project id, tag occurrences) tuple to sorted_output
+		sorted_output.append((proj.pid, counter))
+	# sort the output by the number of occurences of a tag in a project
+	# thus, if every term searched for is in a project, it should be at the front of the list
+	sorted_output.sort(key = operator.itemgetter(1), reverse=True)
+
+	# add the projects to a list based off of the indexes in the sorted_output
+	for pair in sorted_output:
+		project = Project.query.filter_by(pid=pair[0]).first()
+		projects.append(project)
+	# return the projects to be output
+	return projects
+
+# method for handling a request for the projects page
+def search_projects(request=None):
+	searchForm = SearchForm(request.args)
+	tag = None
+	projects = []
+	length = 0
+	current_page = 0
+	session['current_page'] = 0
+	if request.method == "GET" and (request.args.get('search_tags') or request.args.get('index')):
+		# if the user has entered some tag/s to search for, do this
+		if searchForm.validate():
+			tag = searchForm.search_tags.data
+			projects = find_tags(tag)
+		# if no tags entered, return list of all pages
+		else:
+			current_page = 0
+			session['current_page'] = 0
+			projects = Project.query.all()
+		length = len(projects)
+		# if the POST was done to get more entries from the table
+		if request.args.get('index'):
+			# get the page value that was clicked on
+			index = request.args.get('index')
+			index = int(index) -1
+			session['current_page'] = index
+			index = index * 10
+			if projects is not None:
+				projects = projects[index:index+10]
+		else:
+			if projects is not None:
+				projects = projects[0:10]
+	# if no search_tags argument or index
+	else:
+		current_page = 0
+		session['search'] = ""
+		session['current_page'] = 0
+		projects = Project.query.all()
+		length = len(projects)
+		projects = projects[current_page*10:current_page+10]
+	# remove edit as no longer editing a single project if on this page
+	if 'edit' in session:
+		session.pop('edit', None)
+	length = math.ceil(length/10.0)
+
+	return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=length, current_page=session['current_page']+1, search=session['search'])
 
 @app.route('/create_project', methods=['Get', 'Post'])
 def create_project():

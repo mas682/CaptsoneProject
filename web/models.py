@@ -7,7 +7,7 @@ db.init_app(app)
 @app.cli.command('initdb')
 def initdb_command():
 	# wipeout
-	db.drop_all()
+	#db.drop_all()
 	#db.session.commit()
 	#sql = 'CREATE TABLE Users(user_id int, email varchar(20),password varchar(20),provider boolean,admin boolean, CONSTRAINT PK_Applicants PRIMARY KEY(user_id));'
 	#User = db.engine.execute(sql)
@@ -23,9 +23,9 @@ def initdb_command():
 	#ProjectTags = db.engine.execute(sql)
 	# add some default data: the 'owner' account and some sample books
 
-	db.create_all()
-	db.session.add(User(email="owner@app.com", password='pass', provider=True, admin = True))
-	db.session.commit()
+	#db.create_all()
+	#db.session.add(User(email="owner@app.com", password='pass', provider=True, admin = True))
+	#db.session.commit()
 
 	print('Initialized the database.')
 

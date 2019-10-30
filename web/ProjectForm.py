@@ -15,4 +15,8 @@ class TagForm(Form):
     submit2 = SubmitField('Add tag')
 
 class SearchForm(Form):
+    class Meta:
+        csrf = False
+
     search_tags=StringField("Seach by tags:", validators=[InputRequired(message="You must enter a tag")])
+    index=StringField("")

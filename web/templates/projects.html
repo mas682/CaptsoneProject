@@ -4,28 +4,21 @@
 
 {% block main %}
 	{% if projects and user %}
-		<form id = "searchForm" action = "" method="Post" novalidate>
+		<form id = "searchForm" action = "{{url_for('projects', index=len)}}" method="GET" novalidate>
 			{{ form.hidden_tag()}}
 		</form>
-		{% if form.search_tags.errors %}
-			{{form.search_tags(class = "project_input_box_error", id = "search_tag_input", form="searchForm")}}
-			{% for error in form.title.errors %}
-				<span class="input_error">{{ error }}</span>
-			{% endfor %}
-		{% else %}
-			<div id = "insert_tags">
-				<div id = "tagBarLabel">
-					<h3>{{form.search_tags.label()}}
-				</div>
-				<div id = "tagInputBox">
-				{{form.search_tags(class = "inputBox", id = "search_tag_input", form="searchForm")}}
-				</div>
-				<div class = "addTagButton">
-					<button type="submit" name="search" form="searchForm">Search</button>
-				</div>
+		<div class = "search_box">
+			<div class = "search_bar_label">
+				<h3 id = "page_header">{{form.search_tags.label()}}
 			</div>
-		{% endif %}
-		<h3> The current projects are listed below:
+			<div class = "searchInputBox">
+				{{form.search_tags(class_ = "searchBox", id = "search_tag_input", form="searchForm")}}
+			</div>
+			<div class = "addSearchButton">
+				<input class = "searchButton" type="submit" formaction = "{{url_for('projects', index=len)}}" form="searchForm" value = "Search" ></input>
+			</div>
+		</div>
+		<h3 id = "header_indent"> The current projects are listed below: </h3>
 		<table class = "projectTable">
 			<tr>
 				<th class = "tableTitleSearch"> Title </th>
@@ -34,12 +27,12 @@
 			</tr>
 			{% for project in projects %}
 			<tr>
-				<td> <a class = "projectLink" href="{{ url_for('projects', project_id=project.pid) }}">{{project.title}}</td>
+				<td><h3 id = "proj_title_header"><a class = "projectLink" href="{{ url_for('projects', project_id=project.pid) }}">{{project.title}}</td></h3>
 				<td>
 					{% if project.p_tags %}
 						<ul>
 						{% for tag in project.p_tags %}
-							<li>{{tag.name}}
+							<li><h4 id = "tagList">{{tag.name}}</h4>
 						{% endfor %}
 						</ul>
 					{% endif %}
@@ -48,36 +41,75 @@
 			</tr>
 			{% endfor %}
 		</table>
-		<form id = "editForm" action = "" method="Post" novalidate>
+		<form id = "tableIndexForm" action = "{{url_for('projects')}}" method="GET" novalidate>
             {{ form.hidden_tag() }}
+			<input type="hidden" name="search_tags" form="tableIndexForm" value="{{search}}"></input>
         </form>
+		<div class = "submit_data_button">
+		<div>
+		<span id = "pageNumberDisplay">Page: </span>
 		{% if current_page-2 > 1 %}
-			<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">1</button>
-			<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">...</button>
+			<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "1" type="submit">1</button>
+			<button form = "" class = "pageNumberButton" name = "index" value = "ignore" type="submit">...</button>
 			{% if current_page+2 < len %}
 				{% for num in range(current_page-1,current_page+2) %}
-					<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{num}}</button>
+					{% if num == current_page %}
+						<button form = "tableIndexForm" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+					{% else %}
+						<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+					{% endif %}
 				{% endfor %}
-				<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">...</button>
-				<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{len}}</button>
+				<button form = "" class = "pageNumberButton" name = "index" value = "ignore" type="submit">...</button>
+				<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{len}}" type="submit">{{len}}</button>
 			{% else %}
 				{% for num in range(current_page-1,len+1) %}
-					<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{num}}</button>
+					{% if num == current_page %}
+						<button form = "tableIndexForm" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+					{% else %}
+						<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+					{% endif %}
 				{% endfor %}
 			{% endif %}
 		{% else %}
 			{% if current_page+2 < len %}
 				{% for num in range(1,current_page+2) %}
-					<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{num}}</button>
+					{% if num == current_page %}
+						<button form = "tableIndexForm" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+					{% else %}
+						<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+					{% endif %}
 				{% endfor %}
-				<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">...</button>
-				<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{len}}</button>
+				<button form = "" class = "pageNumberButton" name = "index" value = "ignore" type="submit">...</button>
+				<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{len}}" type="submit">{{len}}</button>
 			{% elif current_page+2 >= len %}
 				{% for num in range(1,len+1) %}
-					<button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">{{num}}</button>
+					{% if num == current_page %}
+						<button form = "tableIndexForm" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+					{% else %}
+						<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+					{% endif %}
 				{% endfor %}
 			{% endif %}
 		{% endif %}
 		<br>
+		<br>
+		</div>
+		</div>
+	{% elif not projects and user and search %}
+		<form id = "searchForm" action = "{{url_for('projects', index=len)}}" method="GET" novalidate>
+			{{ form.hidden_tag()}}
+		</form>
+		<div id = "insert_tags">
+			<div id = "tagBarLabel">
+				<h3>{{form.search_tags.label()}}
+			</div>
+			<div id = "tagInputBox">
+				{{form.search_tags(class = "inputBox", id = "search_tag_input", form="searchForm")}}
+			</div>
+			<div class = "addTagButton">
+				<button type="submit" formaction = "{{url_for('projects', index=len)}}" form="searchForm" >Search</button>
+			</div>
+		</div>
+		<h3> There are no projects associted with the tag(s) "{{search}}"</h3>
 	{% endif %}
 {% endblock %}
