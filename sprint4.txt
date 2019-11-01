@@ -1,0 +1,8 @@
+In the previous sprint, we were able to accomplish being able to fully edit a listed project and make changes to it.  We also added the 
+ability to search through the projects based off of several tags and list all the projects that are available.  For the next sprint, we are 
+going to add the ability for users to associate tags with themselves and recommend projects for them.  We are also going to work on the NLP 
+stuff where if users do not use a tag that is commonly suggested, it will no longer be suggested.  We are also going to try to implement a 
+grading system for tags so that users can rank some tags they associate with themselves higher than others.
+The user stories we will address this week are:
+As an applicant, I want to be able to sort the projects that are relevant to me by the best match so that I can get as close to a match for a project that I am looking for as possible.
+As an applicant, I want to be able to skip the interest survey when I access the website as I want to just look at all the projects, and not only ones that are suggested based off of the questions I answer.
