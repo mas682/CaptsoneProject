@@ -9,6 +9,7 @@ CREATE TABLE Tags
 (
   TID int,
   name varchar(20),
+  discards int,
   CONSTRAINT PK_Tags PRIMARY KEY(TID)
 );
 --Applicants and Providers in same table
@@ -29,11 +30,12 @@ CREATE TABLE ApplicantsClasses
   CONSTRAINT PK_AppClass PRIMARY KEY(UID, class),
   CONSTRAINT FK_AppClass FOREIGN KEY(UID) REFERENCES Users(UID)
 );
---Tags associated with applicant: from classes/survey
+--Tags associated with applicant:
 CREATE TABLE ApplicantsTags
 (
   UID int,
   TID int,
+  rating int,
   CONSTRAINT PK_AppTags PRIMARY KEY (UID, TID),
   CONSTRAINT FK_AppTags_App FOREIGN KEY(UID) REFERENCES Users(UID),
   CONSTRAINT FK_AppTags_Tag FOREIGN KEY(TID) REFERENCES Tags(TID)
