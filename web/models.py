@@ -36,8 +36,8 @@ class Tag(db.Model):
 
     tid = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(24), unique=True)
-    users = db.relationship('User', secondary='applicantstags')
-    projects = db.relationship('Project', secondary='projecttags', backref = db.backref('p_tags', lazy='dynamic'), lazy ='dynamic')
+    users = db.relationship('User', secondary='applicantstags', backref = db.backref('u_tags', lazy='dynamic'), lazy = 'dynamic', cascade="all, delete")
+    projects = db.relationship('Project', secondary='projecttags', backref = db.backref('p_tags', lazy='dynamic'), lazy ='dynamic', cascade="all, delete")
 
 
 class User(db.Model):

@@ -3,14 +3,42 @@
 {% block title %}User List{% endblock %}
 
 {% block main %}
-<form id = "tag_form" action = "" method="Post" novalidate>
+<form id = "tag_form" action = "{{url_for('my_tags') }}" method="Post" novalidate>
     <div id = "insert_tags">
+        {{ form.hidden_tag() }}
         <div id = "tagBarLabel">
-            My Tags
+            {{form.tags.label()}}
+        </div>
+        <div id = "tagInputBox">
+            {{form.tags(value = "", class_='inputBox')}}
+        </div>
+        <div id="addTagButton">
+            {{form.submit2(class_='insertTagButton')}}
+        </div>
+        <div id = "formError">
+            {% if form.tags.errors %}
+                {% for error in form.tags.errors %}
+                    {{ error }}
+                {% endfor %}
+            {% endif %}
         </div>
         <div id = "tag_listing">
-            Your current tags for the project are below. Click on them to remove them.
+            The tags associated with your account are listed below. Click on them to remove them.
         </div>
+    </div>
+</form>
+
+<form id = "added_tags" action = "{{url_for('my_tags')}}" method="Post" novalidate>
+    <div id = "tags_created">
+        {% for tag in my_tags %}
+            <div id = "tag_button_container">
+                <input type="submit" name="submit" value="{{tag.name}}" id="TagButton">
+            </div>
+        {% endfor %}
+    </div>
+    <div id = "tag_listing">
+        <br>
+        Tags associated with projects(Click a tag to associate it with your account) :
     </div>
 </form>
 
@@ -23,4 +51,5 @@
         {% endfor %}
     </div>
 </form>
+
 {% endblock %}

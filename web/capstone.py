@@ -1,7 +1,7 @@
 from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash
 from sqlalchemy.exc import IntegrityError
 from app import *
-from models import db, Tag, User, Project, Applicantsclass, t_projecttags
+from models import db, Tag, User, Project, Applicantsclass, t_projecttags, t_applicantstags
 from ProjectForm import ProjectForm, TagForm, SearchForm
 import math
 import operator
@@ -447,7 +447,71 @@ def my_tags():
 	if not g.user:
 		return redirect(url_for('home'))
 	tags = Tag.query.all()
-	return render_template('my_tags.html',tags=tags)
+	temp_tags = g.user.u_tags
+	form = TagForm(request.form)
+	if request.method == 'POST':
+		if 'submit' in request.form:
+			temp_tag = Tag.query.filter_by(name=request.form['submit']).first()
+			if temp_tag in temp_tags:
+				tag = request.form['submit']
+				remove_user_tag(tag)
+				temp_tags = User.query.filter_by(user_id=g.user.user_id).first().u_tags
+			else:
+				tag = request.form['submit']
+				print("Trying to add tag " + tag)
+				add_user_tag(tag)
+				temp_tags = User.query.filter_by(user_id=g.user.user_id).first().u_tags
+			return render_template('my_tags.html', tags=tags, my_tags = temp_tags, form=form)
+		elif form.submit2.data and form.validate_on_submit():
+			new_tag = form.tags.data.lower()
+			new_tag = new_tag.capitalize()
+			if new_tag in temp_tags:
+				pass
+			else:
+				add_user_tag(new_tag)
+				temp_tags = User.query.filter_by(user_id=g.user.user_id).first().u_tags
+			return render_template('my_tags.html', tags=tags, my_tags = temp_tags, form=form)
+	tags.sort(key=lambda x: x.name)
+	return render_template('my_tags.html',tags=tags, form=form, my_tags = temp_tags)
+
+def add_user_tag(tag):
+	# see if the tag already exists in the database
+	tag_list=Tag.query.filter_by(name = tag)
+	# if the tag exists, see if the user is already associated with it
+	if tag_list.first():
+		if tag == tag_list.first().name:
+			temp_tag = tag_list.first()
+			# make sure user not associated with tag before trying to add user to it
+			if g.user not in temp_tag.users:
+				temp_tag.users.append(g.user)
+			# otherwise, need to create the tag in the database and
+			# add the user to it
+			# probably redundant but just in case
+		else:
+			db.session.add(Tag(name=tag))
+			db.session.commit()
+			temp_tag=Tag.query.filter_by(name=tag).first()
+			temp_tag.users.append(g.user)
+	else:
+		db.session.add(Tag(name=tag))
+		db.session.commit()
+		temp_tag=Tag.query.filter_by(name=tag).first()
+		temp_tag.users.append(g.user)
+	db.session.commit()
+
+# method to handle removing a tag from a user
+def remove_user_tag(tag):
+	print("Remove tag with name " + tag)
+	# see if the tag already exists in the database, which it should
+	tag_list=Tag.query.filter_by(name = tag)
+	# if the tag exists, remove it from assoication to user
+	if tag_list.first():
+		if tag == tag_list.first().name:
+			temp_tag = tag_list.first()
+			# make sure user already associated with the tag
+			if g.user in temp_tag.users:
+				temp_tag.users.remove(g.user);
+		db.session.commit()
 
 @app.route('/create_project/create_tags', methods=['Get', 'Post'])
 def create_tags():
