@@ -2,7 +2,7 @@
 --CS 1980
 --Matchmaker Application
 
--- ## TODO: Survey responses, better security measures
+-- ##better security measures
 
 
 --Add new applicant
@@ -112,8 +112,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
---Search for projects that have a tag
-CREATE OR REPLACE FUNCTION searchProjects(tag varchar(20)) RETURNS TABLE(uid int, p_name varchar(20),description varchar(5000))  AS $$
+--Search for projects that have or don't have a tag
+CREATE OR REPLACE FUNCTION searchProjects(tag varchar(20),type boolean) RETURNS TABLE(uid int, p_name varchar(20),description varchar(5000))  AS $$
 BEGIN
   DROP TABLE IF EXISTS combineTags;
   DROP TABLE IF EXISTS combineProjects;
@@ -121,7 +121,60 @@ BEGIN
       SELECT * FROM tags NATURAL JOIN projectTags;
   CREATE TABLE combineProjects AS
       SELECT * FROM combineTags NATURAL JOIN projects;
-  RETURN QUERY
-  SELECT cp.uid, cp.p_name, cp.description FROM combineProjects cp WHERE cp.name=tag;
+  IF(type) --want this tag
+    THEN
+    RETURN QUERY
+      SELECT cp.uid, cp.p_name, cp.description FROM combineProjects cp WHERE cp.name=tag;
+  END IF;
+  RETURN QUERY --don't want this tag
+    SELECT cp.uid, cp.p_name, cp.description FROM combineProjects cp WHERE cp.name!=tag;
 END;
 $$ LANGUAGE plpgsql;
+
+--Update rating for a user's tag
+CREATE OR REPLACE PROCEDURE updateRating(userID int, tag int, rate int) AS $$
+BEGIN
+  UPDATE ApplicantsTags SET rating=rate WHERE uid=userID AND tid=tag;
+END;
+$$ LANGUAGE plpgsql;
+
+--Update discard count for a tag
+CREATE OR REPLACE PROCEDURE updateDiscardCount(tag int, change boolean) AS $$
+DECLARE
+  curCount int;
+BEGIN
+  SELECT discards into curCount FROM Tags WHERE tid=tag;
+  IF(change) --increase discard count(not good tag)
+    THEN
+      UPDATE Tags SET discards=curCount+1 WHERE tid=tag;
+  END IF;
+  IF(!change AND curCount>0) --decrease discard (good tag)
+    THEN
+    UPDATE Tags SET discards=curCount-1 WHERE tid=tag;
+  END IF;
+END;
+$$ LANGUAGE plpgsql;
+
+--Get projects that best correspond with user tags
+--Note: can probably use other functions to do this
+/*
+CREATE OR REPLACE FUNCTION searchProjects(applicantID int) RETURNS TABLE(uid int, p_name varchar(20), description varchar(5000)) AS $$
+DECLARE
+  userTags int;
+BEGIN
+  DROP TABLE IF EXISTS theTags;
+  DROP TABLE IF EXISTS combineTags;
+  DROP TABLE IF EXISTS countTags;
+  --get user tags
+  CREATE TABLE theTags AS
+    SELECT * FROM applicantsTags at WHERE at.uid=applicantID;
+  --get projects tags that match user tags
+  CREATE TABLE combineTags AS
+    SELECT * FROM theTags NATURAL JOIN ProjectTags;
+  CREATE TABLE countTags AS
+    SELECT COUNT(DISTINCT ct.p_name) FROM combineTags ct;
+  RETURN QUERY
+    SELECT * FROM projects ct;
+END;
+$$ LANGUAGE plpgsql;
+*/
