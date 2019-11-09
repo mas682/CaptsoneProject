@@ -35,7 +35,9 @@
 				{% endfor %}
 				</table>
 				<form id = "tableIndexForm" action = "{{url_for('home')}}" method="GET" novalidate>
-					<input type="hidden" name="index2" form="tableIndexForm" value="{{current_page_suggested}}"></input>
+					{% if suggested_projects %}
+						<input type="hidden" name="index2" form="tableIndexForm" value="{{current_page_suggested}}"></input>
+					{% endif %}
 				</form>
 				<div class = "submit_data_button">
 				<div>
@@ -114,7 +116,9 @@
 				{% endfor %}
 			</table>
 			<form id = "tableIndexForm2" action = "{{url_for('home')}}" method="GET" novalidate>
-				<input type="hidden" name="index" form="tableIndexForm2" value="{{current_page}}"></input>
+				{% if my_projects %}
+					<input type="hidden" name="index" form="tableIndexForm2" value="{{current_page}}"></input>
+				{% endif %}
 			</form>
 			<div class = "submit_data_button">
 			<div>
