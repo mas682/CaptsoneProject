@@ -9,7 +9,6 @@
 	{# this is the basic test we're using to see if someone is logged in.
 		you'll have to extend this logic further... #}
 	{% if g.user %}
-			<p>Welcome back!
 		{% if g.user.provider %}
 			{% if my_projects %}
 				<h3> Your listed projects are below:
@@ -35,18 +34,139 @@
 					</tr>
 				{% endfor %}
 				</table>
+				<form id = "tableIndexForm" action = "{{url_for('home')}}" method="GET" novalidate>
+					<input type="hidden" name="index2" form="tableIndexForm" value="{{current_page_suggested}}"></input>
+				</form>
+				<div class = "submit_data_button">
+				<div>
+				<span id = "pageNumberDisplay">Page: </span>
+				{% if current_page-2 > 1 %}
+					<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "1" type="submit">1</button>
+					<button form = "" class = "pageNumberButton" name = "index" value = "ignore" type="submit">...</button>
+					{% if current_page+2 < len %}
+						{% for num in range(current_page-1,current_page+2) %}
+							{% if num == current_page %}
+								<button form = "tableIndexForm" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+							{% else %}
+								<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+							{% endif %}
+						{% endfor %}
+						<button form = "" class = "pageNumberButton" name = "index" value = "ignore" type="submit">...</button>
+						<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{len}}" type="submit">{{len}}</button>
+					{% else %}
+						{% for num in range(current_page-1,len+1) %}
+							{% if num == current_page %}
+								<button form = "tableIndexForm" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+							{% else %}
+								<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+							{% endif %}
+						{% endfor %}
+					{% endif %}
+				{% else %}
+					{% if current_page+2 < len %}
+						{% for num in range(1,current_page+2) %}
+							{% if num == current_page %}
+								<button form = "tableIndexForm" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+							{% else %}
+								<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+							{% endif %}
+						{% endfor %}
+						<button form = "" class = "pageNumberButton" name = "index" value = "ignore" type="submit">...</button>
+						<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{len}}" type="submit">{{len}}</button>
+					{% elif current_page+2 >= len %}
+						{% for num in range(1,len+1) %}
+							{% if num == current_page %}
+								<button form = "tableIndexForm" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+							{% else %}
+								<button form = "tableIndexForm" class = "pageNumberButton" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+							{% endif %}
+						{% endfor %}
+					{% endif %}
+				{% endif %}
+				<br>
+				<br>
+				</div>
+				</div>
 			{% endif %}
 		{% endif %}
-		<h3> Your suggested projects are listed below:
-		<table class = "projectTable">
-			<tr>
-				<th class = "tableTitle"> Title </th>
-				<th class = "tableSummary"> Summary </th>
-			</tr>
-			<tr>
-				<td> Will hold the project title </td>
-				<td class = "tableSummaryBox"> Will hold a summary of the project or tags?</td>
-		</table>
+		{% if suggested_projects %}
+			<h3> Your suggested projects are listed below:
+			<table class = "projectTable">
+				<tr>
+					<th class = "tableTitle"> Title </th>
+					<th class = "tableTags"> Tags </th>
+					<th class = "tableSummary"> Summary </th>
+				</tr>
+				{% for project in suggested_projects %}
+				<tr>
+					<td> <a class = "projectLink" href="{{ url_for('projects', project_id=project.pid) }}">{{project.title}}</td>
+					<td>
+						{% if project.p_tags %}
+							<ul>
+							{% for tag in project.p_tags %}
+								<li>{{tag.name}}
+							{% endfor %}
+							</ul>
+						{% endif %}
+					</td>
+					<td class = "tableSummaryBox"> {{project.description}} </td>
+				</tr>
+				{% endfor %}
+			</table>
+			<form id = "tableIndexForm2" action = "{{url_for('home')}}" method="GET" novalidate>
+				<input type="hidden" name="index" form="tableIndexForm2" value="{{current_page}}"></input>
+			</form>
+			<div class = "submit_data_button">
+			<div>
+			<span id = "pageNumberDisplay">Page: </span>
+			{% if current_page_suggested-2 > 1 %}
+				<button form = "tableIndexForm2" class = "pageNumberButton" name = "index2" value = "1" type="submit">1</button>
+				<button form = "" class = "pageNumberButton" name = "index2" value = "ignore" type="submit">...</button>
+				{% if current_page_suggested+2 < len2 %}
+					{% for num in range(current_page_suggested-1,current_page_suggested+2) %}
+						{% if num == current_page_suggested %}
+							<button form = "tableIndexForm2" class = "pageNumberButtonCurrent" name = "index2" value = "{{num}}" type="submit">{{num}}</button>
+						{% else %}
+							<button form = "tableIndexForm2" class = "pageNumberButton" name = "index2" value = "{{num}}" type="submit">{{num}}</button>
+						{% endif %}
+					{% endfor %}
+					<button form = "" class = "pageNumberButton" name = "index2" value = "ignore" type="submit">...</button>
+					<button form = "tableIndexForm" class = "pageNumberButton" name = "index2" value = "{{len2}}" type="submit">{{len2}}</button>
+				{% else %}
+					{% for num in range(current_page_suggested-1,len2+1) %}
+						{% if num == current_page_suggested %}
+							<button form = "tableIndexForm2" class = "pageNumberButtonCurrent" name = "index" value = "{{num}}" type="submit">{{num}}</button>
+						{% else %}
+							<button form = "tableIndexForm2" class = "pageNumberButton" name = "index2" value = "{{num}}" type="submit">{{num}}</button>
+						{% endif %}
+					{% endfor %}
+				{% endif %}
+			{% else %}
+				{% if current_page_suggested+2 < len2 %}
+					{% for num in range(1,current_page_suggested+2) %}
+						{% if num == current_page_suggested %}
+							<button form = "tableIndexForm2" class = "pageNumberButtonCurrent" name = "index2" value = "{{num}}" type="submit">{{num}}</button>
+						{% else %}
+							<button form = "tableIndexForm2" class = "pageNumberButton" name = "index2" value = "{{num}}" type="submit">{{num}}</button>
+						{% endif %}
+					{% endfor %}
+					<button form = "" class = "pageNumberButton" name = "index2" value = "ignore" type="submit">...</button>
+					<button form = "tableIndexForm2" class = "pageNumberButton" name = "index2" value = "{{len2}}" type="submit">{{len2}}</button>
+				{% elif current_page_suggested+2 >= len2 %}
+					{% for num in range(1,len2+1) %}
+						{% if num == current_page_suggested %}
+							<button form = "tableIndexForm2" class = "pageNumberButtonCurrent" name = "index2" value = "{{num}}" type="submit">{{num}}</button>
+						{% else %}
+							<button form = "tableIndexForm2" class = "pageNumberButton" name = "index2" value = "{{num}}" type="submit">{{num}}</button>
+						{% endif %}
+					{% endfor %}
+				{% endif %}
+			{% endif %}
+			<br>
+			<br>
+			</div>
+			</div>
+		{% endif %}
 	{% else %}
 		<div class="container">
 			<div id = "intro">

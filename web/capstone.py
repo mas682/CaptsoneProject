@@ -423,6 +423,80 @@ def search_projects(request=None):
 
 	return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=length, current_page=session['current_page']+1, search=session['search'])
 
+# method for handling a request for the home page
+def get_table_page(request=None):
+	projects = []
+	length = 0
+	current_page = 0
+	session['current_page'] = 0
+	if request.method == "GET" and request.args.get('index'):
+		current_page = 0
+		session['current_page'] = 0
+		projects = Project.query.filter_by(user = g.user.user_id).all()
+		length = len(projects)
+		# if the POST was done to get more entries from the table
+		if request.args.get('index'):
+			# get the page value that was clicked on
+			index = request.args.get('index')
+			index = int(index) -1
+			session['current_page'] = index
+			index = index * 5
+			if projects is not None:
+				projects = projects[index:index+5]
+		else:
+			if projects is not None:
+				projects = projects[0:5]
+	# if no search_tags argument or index
+	else:
+		current_page = 0
+		session['current_page'] = 0
+		projects = Project.query.filter_by(user = g.user.user_id).all()
+		length = len(projects)
+		projects = projects[current_page*5:current_page+5]
+	# remove edit as no longer editing a single project if on this page
+	if 'edit' in session:
+		session.pop('edit', None)
+	length = math.ceil(length/5.0)
+
+	return [projects, length, session['current_page'] + 1]
+
+def get_suggested_table(request, tag_string):
+	suggested_projects = find_tags(tag_string)
+	length = 0
+	current_page = 0
+	session['current_page2'] = 0
+	if request.method == "GET" and request.args.get('index2'):
+		current_page = 0
+		session['current_page2'] = 0
+		length = len(suggested_projects)
+		# if the POST was done to get more entries from the table
+		if request.args.get('index2'):
+			# get the page value that was clicked on
+			index = request.args.get('index2')
+			index = int(index) -1
+			session['current_page2'] = index
+			index = index * 5
+			if suggested_projects is not None:
+				suggested_projects = suggested_projects[index:index+5]
+		else:
+			if suggested_projects is not None:
+				suggested_projects = suggested_projects[0:5]
+	# if no search_tags argument or index
+	else:
+		current_page = 0
+		session['current_page2'] = 0
+		length = len(suggested_projects)
+		suggested_projects = suggested_projects[current_page*5:current_page+5]
+	# remove edit as no longer editing a single project if on this page
+	if 'edit' in session:
+		session.pop('edit', None)
+	print(length)
+	length = math.ceil(length/5.0)
+	print(length)
+
+	return [suggested_projects, length, session['current_page2'] + 1]
+
+
 @app.route('/create_project', methods=['Get', 'Post'])
 def create_project():
 	session.pop('form1', None)
@@ -614,16 +688,14 @@ def home():
 	else:
 		if g.user:
 			error = "You are logged in"
-			projects = Project.query.filter_by(user = g.user.user_id).all()
-			for project in projects:
-				print(str(project.pid))
-				print(str(project.title))
-				print(str(project.background))
-				print(str(project.description))
-				#for Tag in project.p_tags:
-				#	print("tag: " + str(Tag.name))
+			projects = get_table_page(request)
+			tag_string = ""
+			for tag in g.user.u_tags:
+				tag_string = tag_string + tag.name + " "
+			s_projects = get_suggested_table(request, tag_string)
+# will want to remove projects that this user is the owner of..
 			flash(error)
-			return render_template('home.html', my_projects=projects)
+			return render_template('home.html', my_projects=projects[0], len=projects[1], current_page=projects[2], suggested_projects = s_projects[0], len2=s_projects[1], current_page_suggested = s_projects[2])
 		else:
 			error = "You are not logged in"
 			flash(error)
