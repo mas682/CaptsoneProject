@@ -287,9 +287,10 @@ def projects(project_id = None, search_tags = None):
 				for tag in removed_tags:
 					tag = tag.lower()
 					tag = tag.capitalize()
+					print("REMOVE TAG: " + str(tag))
 					try:
-						db_tag = Tag.session.query.filter_by(name=tag).first()
-						project.p_tags.remove(db_tag)
+						db_tag = Tag.query.filter_by(name=tag).first()
+						db_tag.projects.remove(project)
 						db_tag.freq = db_tag.freq -1;
 						db.session.commit()
 					except:
