@@ -81,7 +81,8 @@ def register():
 					email = request.form['email'],
 					password = request.form['password'],
 					provider = False,
-					admin = False))
+					admin = False,
+					new_user=True))
 				db.session.commit()
 			# error check if this email is already associated with some account
 # need to make it so that error occurs like project form errors
@@ -116,7 +117,8 @@ def registerProvider():
 					email = request.form['email'],
 					password = request.form['password'],
 					provider = True,
-					admin = False))
+					admin = False,
+					new_user=True))
 				db.session.commit()
 			except IntegrityError:
 				db.session.rollback()
@@ -266,7 +268,7 @@ def projects(project_id = None, search_tags = None):
 						skip = False
 						continue
 					tag = tag.capitalize()
-					temp_tag = Tag(name=tag)
+					temp_tag = Tag(name=tag, freq=1)
 					# try to create the tag in the database
 					try:
 						db.session.add(temp_tag)
@@ -277,6 +279,7 @@ def projects(project_id = None, search_tags = None):
 						db.session.rollback()
 						temp_tag = Tag.query.filter_by(name=tag).first()
 						project.p_tags.append(temp_tag)
+						temp_tag.freq = temp_tag.freq + 1
 						db.session.commit()
 # could have error here if someone deletes the tag... ^^^^
 			# if there are tags that need to be removed from the project
@@ -287,6 +290,7 @@ def projects(project_id = None, search_tags = None):
 					try:
 						db_tag = Tag.session.query.filter_by(name=tag).first()
 						project.p_tags.remove(db_tag)
+						db_tag.freq = db_tag.freq -1;
 						db.session.commit()
 					except:
 						print("Tag no longer in the system")
@@ -646,11 +650,12 @@ def create_tags():
 						if tag == tag_list.first().name:
 							print("The tag " + str(tag) + " already existed.")
 							temp_tag = tag_list.first()
+							temp_tag.freq = temp_tag.freq + 1
 							temp_tag.projects.append(project)
 							# otherwise, need to create the tag in the database and
 							# add the project to it
 						else:
-							db.session.add(Tag(name=tag))
+							db.session.add(Tag(name=tag, freq=1))
 							db.session.commit()
 							temp_tag=Tag.query.filter_by(name=tag).first()
 							temp_tag.projects.append(project)
@@ -659,6 +664,14 @@ def create_tags():
 						db.session.commit()
 						temp_tag=Tag.query.filter_by(name=tag).first()
 						temp_tag.projects.append(project)
+					db.session.commit()
+				for tag in suggested_tags:
+					if not tag in temp_tags:
+						sug_tag = Tag.query.filter_by(name=tag).first()
+						print(tag + " not in temp tags")
+						if sug_tag:
+							sug_tag.freq = sug_tag.freq -1
+							print("decreasing value for " + sug_tag.name + " to " + str(sug_tag.freq))
 					db.session.commit()
 			session.pop('form1', None)
 			return redirect(url_for('home'))
@@ -721,9 +734,17 @@ def demo_nltk(title, description, background):
 		for t in tag_arr:
 			t = t.lower()
 			t = t.capitalize()
-			tag_set.add(t)
+			suggested = Tag.query.filter_by(name=t).first()
+			if not suggested:
+				db.session.add(Tag(name=t, freq=0))
+				tag_set.add(t)
+				db.session.commit()
+			else:
+				# only add tag to suggested if it has not been denied more than some set threshold
+				print(suggested.name + " " + str(suggested.freq))
+				if(suggested.freq > -3):
+					tag_set.add(t)
 	print("\nTags:"+str(tag_set))
-
 	return list(tag_set)
 
 # The home page.
@@ -731,6 +752,7 @@ def demo_nltk(title, description, background):
 def home():
 	"""Logs the user in."""
 	error = None
+	new_user = False
 	if request.method == 'POST':
 		if g.user:
 			return redirect(url_for('home'))
@@ -749,6 +771,10 @@ def home():
 		return redirect(url_for('home'))
 	else:
 		if g.user:
+			if g.user.new_user:
+				g.user.new_user = False
+				db.session.commit()
+				new_user=True
 			error = "You are logged in"
 			projects = get_table_page(request)
 			tag_string = ""
@@ -757,7 +783,7 @@ def home():
 			s_projects = get_suggested_table(request, tag_string)
 # will want to remove projects that this user is the owner of..
 			flash(error)
-			return render_template('home.html', my_projects=projects[0], len=projects[1], current_page=projects[2], suggested_projects = s_projects[0], len2=s_projects[1], current_page_suggested = s_projects[2])
+			return render_template('home.html', new_user = new_user, my_projects=projects[0], len=projects[1], current_page=projects[2], suggested_projects = s_projects[0], len2=s_projects[1], current_page_suggested = s_projects[2])
 		else:
 			error = "You are not logged in"
 			flash(error)

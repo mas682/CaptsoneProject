@@ -9,6 +9,10 @@
 	{# this is the basic test we're using to see if someone is logged in.
 		you'll have to extend this logic further... #}
 	{% if g.user %}
+		{% if new_user %}
+			Welcome to the Pitt Capstone Website!
+			<br> Here are some tips for new users:
+		{% endif %}
 		{% if g.user.provider %}
 			{% if my_projects %}
 				<h3> Your listed projects are below:
