@@ -527,7 +527,11 @@ def create_project():
 def my_tags():
 	if not g.user:
 		return redirect(url_for('home'))
-	tags = Tag.query.all()
+	all_tags = Tag.query.all()
+	tags = []
+	for tag in all_tags:
+		if tag.projects.first():
+			tags.append(tag)
 	temp_tags = g.user.u_tags
 	form = TagForm(request.form)
 	if request.method == 'POST':
