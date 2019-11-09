@@ -43,4 +43,14 @@
         <button type="submit" name="submit3" form="tag_form" value = "create">Create Project</button>
     </div>
 </div>
+
+<form id = "suggested_tags" action = "{{url_for('create_tags')}}" method="Post" novalidate>
+    <div id = "tags_created">
+        {% for tag in suggested_tags %}
+            <div id = "tag_button_container">
+                <input type="submit" name="submit_suggested" value="{{tag}}" id="TagButton">
+            </div>
+        {% endfor %}
+    </div>
+</form>
 {% endblock %}

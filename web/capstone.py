@@ -30,7 +30,7 @@ def before_request():
 	g.user = None
 	if 'user_id' in session:
 		g.user = User.query.filter_by(user_id=session['user_id']).first()
-	print(str(request.headers))
+	#print(str(request.headers))
 #########################################################################################
 # User account management page routes
 #########################################################################################
@@ -499,6 +499,7 @@ def get_suggested_table(request, tag_string):
 
 @app.route('/create_project', methods=['Get', 'Post'])
 def create_project():
+	print("HERE!!!!!!!!!!!!!")
 	session.pop('form1', None)
 	form = ProjectForm(request.form)
 	if not g.user.provider:
@@ -510,7 +511,8 @@ def create_project():
 								"background":form.background.data,
 								"description": form.description.data,
 								"contact": form.email.data,
-								"tags": []}
+								"tags": [],
+								"suggested_tags": demo_nltk(form.title.data, form.background.data, form.description.data)}
 			session['tags'] = []
 			flash(form.title.data)
 			return redirect(url_for('create_tags'))
@@ -596,6 +598,7 @@ def create_tags():
 		return redirect(url_for('home'))
 	my_dict = session['form1']
 	temp_tags = my_dict['tags']
+	suggested_tags = my_dict['suggested_tags']
 	if request.method =='POST':
 		if form.submit2.data and form.validate_on_submit():
 			new_tag = form.tags.data.lower()
@@ -604,15 +607,24 @@ def create_tags():
 				pass
 			else:
 				temp_tags.append(new_tag)
-			session['form1']['tags'] = temp_tags
-			flash(form.tags.data)
-			return render_template('create_tags.html', form=form, tags=temp_tags)
+			my_dict['tags'] = temp_tags
+			session.pop('form1', None)
+			session['form1'] = my_dict
+			return render_template('create_tags.html', form=form, tags=session['form1']['tags'], suggested_tags = suggested_tags)
 		elif 'submit' in request.form:
-			print("4. " + str(request.form))
 			temp_tags.remove(request.form['submit'])
-			session['form1']['tags'] = temp_tags
-			flash(form.tags.data)
-			return render_template('create_tags.html', form=form, tags=temp_tags)
+			my_dict['tags'] = temp_tags
+			session.pop('form1', None)
+			session['form1'] = my_dict
+			return render_template('create_tags.html', form=form, tags=temp_tags, suggested_tags=suggested_tags)
+		elif 'submit_suggested' in request.form:
+			tag = request.form['submit_suggested']
+			if tag not in temp_tags:
+				temp_tags.append(tag)
+			my_dict['tags'] = temp_tags
+			session.pop('form1', None)
+			session['form1'] = my_dict
+			return render_template('create_tags.html', form=form, tags=temp_tags, suggested_tags=suggested_tags)
 		elif 'submit3' in request.form:
 			db.session.add(Project(
 				title = my_dict['title'],
@@ -648,9 +660,9 @@ def create_tags():
 						temp_tag=Tag.query.filter_by(name=tag).first()
 						temp_tag.projects.append(project)
 					db.session.commit()
-			# upon adding a project, return to the home page of the user
+			session.pop('form1', None)
 			return redirect(url_for('home'))
-	return render_template('create_tags.html', form=form, tags=temp_tags)
+	return render_template('create_tags.html', form=form, tags=temp_tags, suggested_tags=suggested_tags)
 
 @app.route('/myaccount')
 def account():
@@ -663,6 +675,56 @@ def account():
 # Other page routes
 #########################################################################################
 
+
+def demo_nltk(title, description, background):
+	testStr=[]
+	testStr.append(title)
+	testStr.append(description)
+	testStr.append(background)
+	finalTags = []
+	for line in testStr:
+		print("LINE")
+		tokenArray=nltk.word_tokenize(line)
+		taggedArray=nltk.pos_tag(tokenArray)
+		print("\nTagged sentence: \n"+str(taggedArray)+"\n\n\n\n\n\n");
+		tags=[]
+		for word,type in taggedArray:
+			if(type=='NN' or type=='NNP' or type=='NNS' or type=='NNPS'):
+				noun=word
+				startFrom=tokenArray.index(word)
+				#print(startFrom)
+				for x in range(startFrom-1,0,-1):
+					prevWord=taggedArray[x]
+					#print("prevword : "+str(prevWord))
+					if(prevWord[1]=='JJ' or prevWord[1] == 'JJR' or prevWord[1]=='JJS'
+						or prevWord[1]=='NN' or prevWord[1]=='NNP' or prevWord[1]=='NNS' or prevWord[1]=='NNPS'):
+						noun=prevWord[0]+" "+noun
+						#print("prev added")
+					else:
+						break
+				for x in range(startFrom+1, len(tokenArray)):
+					afterWord=taggedArray[x]
+					#print("afterword : "+str(afterWord))
+					if(afterWord[1]=='JJ' or afterWord[1] == 'JJR' or afterWord[1]=='JJS'
+						or afterWord[1]=='NN' or afterWord[1]=='NNP' or afterWord[1]=='NNS' or afterWord[1]=='NNPS'):
+						noun=noun + " "+afterWord[0]
+						#print("after added")
+					else:
+						break
+				tags.append(noun)
+			tags=list(dict.fromkeys(tags))
+			print("TAGS:" + str(tags))
+		finalTags = finalTags + tags
+	tag_set = set()
+	for tag in finalTags:
+		tag_arr = tag.split(" ")
+		for t in tag_arr:
+			t = t.lower()
+			t = t.capitalize()
+			tag_set.add(t)
+	print("\nTags:"+str(tag_set))
+
+	return list(tag_set)
 
 # The home page.
 @app.route('/', methods=['GET', 'POST'])

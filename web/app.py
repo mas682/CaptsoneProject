@@ -6,7 +6,7 @@ app = Flask(__name__)
 # configuration
 PER_PAGE = 30
 DEBUG = True
-SECRET_KEY = 'development key'
+SECRET_KEY = 'flask key'
 POSTGRES = {
     'user': 'postgres',
     'pw': 'password',
