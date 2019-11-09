@@ -3,7 +3,7 @@
 {% block title %}Pitt Capstone Website{% endblock %}
 
 {% block main %}
-	{# neat! you can actually "call" other blocks like methods... since they are. #}
+	{% if g.user.user_id == project.user %}
         <form id = "editProjectForm" action = "" method="Post" novalidate>
             {{ form.hidden_tag()}}
         </form>
@@ -160,5 +160,25 @@
 				</div>
 			{% endif %}
 		{% endif %}
-
+	{% else %}
+		<h2 class = "projectHeaders">Title</h2>
+		<p> {{project.title}}
+		<h2 class = "projectHeaders">Background</h2>
+		<p> {{project.background}}
+		<h2 class = "projectHeaders">Description</h2>
+		<p> {{project.description}}
+		<h2 class = "projectHeaders">Contact Email</h2>
+		<p> {{project.contact}}
+		<h2 class = "projectHeaders">Project Tags</h2>
+		{% if project.p_tags %}
+			<div id = "tags_created">
+				{{ form.hidden_tag() }}
+				{% for tag in project.p_tags %}
+					<div id = "tag_button_container">
+						<input type="submit" name="submit" value="{{tag.name}}" id="TagButton">
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+	{% endif %}
 {% endblock %}
