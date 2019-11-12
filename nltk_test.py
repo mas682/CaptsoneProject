@@ -42,6 +42,30 @@ def demo_nltk():
 				tags.append(noun)
 		tags=list(dict.fromkeys(tags))
 		print("\nTags:"+str(tags))
+		print("enter username")
+		un=input()
+		print("enter password")
+		pw=input()
+		con=psycopg2.connect(database="postgres",user=un,password=pw,host="localhost",port="5432")
+		executor=con.cursor()
+		recommendedTags=[]
+		unrecommendedTags=[]
+		deletedTags=[]
+		for tag in tags:
+			executor.execute("SELECT discards FROM Tags WHERE name='"+tag+"';")
+			returned=executor.fetchall()
+			if(len(returned)==0):
+				recommendedTags.append(tag)
+			elif(returned[0]>10):
+				unrecommendedTags.append(tag)
+			elif(returned[0]>50):
+				deletedTags.append(tag)
+			else:
+				recommendedTags.append(tag)
+		print(recommendedTags)
+		print(unrecommendedTags)
+		print(deletedTags)
+			
 		
 #demo of using psycopg2 library; postgresql connector
 def sql():
