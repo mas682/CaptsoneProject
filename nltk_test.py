@@ -66,7 +66,25 @@ def demo_nltk():
 		print(unrecommendedTags)
 		print(deletedTags)
 			
-		
+def editRating(user,tag,rating): #rating = 1-5 number
+	print("enter username")
+	un=input()
+	print("enter password")
+	pw=input()
+	con=psycopg2.connect(database="postgres",user=un,password=pw,host="localhost",port="5432")
+	executor=con.cursor()
+	executor.execute("CALL updateRating(" + user + "," + tag + "," +rating +");"
+	
+def feedbackDiscard(tag, rating): #rating = true/false
+	print("enter username")
+	un=input()
+	print("enter password")
+	pw=input()
+	con=psycopg2.connect(database="postgres",user=un,password=pw,host="localhost",port="5432")
+	executor=con.cursor()
+	executor.execute("CALL updateDiscardCount(" + tag + "," + rating + ");"
+	
+	
 #demo of using psycopg2 library; postgresql connector
 def sql():
 	print("enter username")

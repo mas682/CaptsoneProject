@@ -8,7 +8,7 @@
 CREATE TABLE Tags
 (
   TID int,
-  name varchar(20),
+  name varchar(50),
   discards int,
   CONSTRAINT PK_Tags PRIMARY KEY(TID)
 );
@@ -16,9 +16,9 @@ CREATE TABLE Tags
 CREATE TABLE Users
 (
   UID int,
-  email varchar(20),
-  password varchar(20),
-  major varchar(10),
+  email varchar(30),
+  password varchar(30),
+  major varchar(20),
   isProvider boolean,
   CONSTRAINT PK_Applicants PRIMARY KEY(UID)
 );
@@ -26,7 +26,7 @@ CREATE TABLE Users
 CREATE TABLE ApplicantsClasses
 (
   UID int,
-  class varchar(20),
+  class varchar(50),
   CONSTRAINT PK_AppClass PRIMARY KEY(UID, class),
   CONSTRAINT FK_AppClass FOREIGN KEY(UID) REFERENCES Users(UID)
 );
@@ -44,7 +44,7 @@ CREATE TABLE ApplicantsTags
 CREATE TABLE Projects
 (
   UID int,
-  p_name varchar(20),
+  p_name varchar(50),
   description varchar(5000),
   CONSTRAINT PK_Projects PRIMARY KEY(UID, p_name),
   CONSTRAINT FK_Projects FOREIGN KEY(UID) REFERENCES Users(UID)
@@ -53,7 +53,7 @@ CREATE TABLE Projects
 CREATE TABLE ProjectTags
 (
   UID int,
-  p_name varchar(20),
+  p_name varchar(50),
   TID int,
   CONSTRAINT PK_ProjectTags PRIMARY KEY(UID, p_name, TID),
   CONSTRAINT FK_ProjectTags_Proj FOREIGN KEY(UID, p_name) REFERENCES Projects(UID, p_name),
