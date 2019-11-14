@@ -345,15 +345,20 @@ def find_tags(tag=None):
 		# get the tag itself
 		tags[num] = tags[num].lower()
 		tags[num] = tags[num].capitalize()
-		temp_tag = Tag.query.filter_by(name=tags[num]).first()
+
+		#old:
+		#temp_tag = Tag.query.filter_by(name=tags[num]).first()
+		#new:
+		temp_tag = Tag.query.filter(Tag.name.startswith(tags[num])).all()
 		# if the tag does not exist in the database, skip to next tag to check
 		if temp_tag is None:
 			continue
 		# if the tag exists, check the projects it is associated with
-		for proj in temp_tag.projects:
-			# if temp_projects does not have this project yet, add it to it
-			if proj not in temp_projects:
-				temp_projects.append(proj)
+		for t in temp_tag:
+			for proj in t.projects:
+				# if temp_projects does not have this project yet, add it to it
+				if proj not in temp_projects:
+					temp_projects.append(proj)
 	# iterate through all the projects in temp_projects to see how many of the searched for tags
 	# are in each individual project
 	for proj in temp_projects:
@@ -362,13 +367,14 @@ def find_tags(tag=None):
 		# iterate through the tags that are being searched for
 		for num in range(tag_length):
 			# get the actual tag
-			temp_tag = Tag.query.filter_by(name=tags[num]).first()
+			temp_tag = Tag.query.filter(Tag.name.startswith(tags[num])).all()
 			# if the tag does not exist, skip this search term
 			if temp_tag is None:
 				continue
-			# if the tag to look for is in this project, increment the counter
-			if temp_tag in proj.p_tags:
-				counter = counter + 1
+			for t in temp_tag:
+				# if the tag to look for is in this project, increment the counter
+				if t in proj.p_tags:
+					counter = counter + 1
 		# after the inner for loop, add a (project id, tag occurrences) tuple to sorted_output
 		sorted_output.append((proj.pid, counter))
 	# sort the output by the number of occurences of a tag in a project
@@ -504,7 +510,6 @@ def get_suggested_table(request, tag_string):
 
 @app.route('/create_project', methods=['Get', 'Post'])
 def create_project():
-	print("HERE!!!!!!!!!!!!!")
 	session.pop('form1', None)
 	form = ProjectForm(request.form)
 	if not g.user.provider:
@@ -573,12 +578,12 @@ def add_user_tag(tag):
 			# add the user to it
 			# probably redundant but just in case
 		else:
-			db.session.add(Tag(name=tag))
+			db.session.add(Tag(name=tag, freq=0))
 			db.session.commit()
 			temp_tag=Tag.query.filter_by(name=tag).first()
 			temp_tag.users.append(g.user)
 	else:
-		db.session.add(Tag(name=tag))
+		db.session.add(Tag(name=tag, freq=0))
 		db.session.commit()
 		temp_tag=Tag.query.filter_by(name=tag).first()
 		temp_tag.users.append(g.user)
@@ -665,7 +670,7 @@ def create_tags():
 							temp_tag=Tag.query.filter_by(name=tag).first()
 							temp_tag.projects.append(project)
 					else:
-						db.session.add(Tag(name=tag))
+						db.session.add(Tag(name=tag, freq=1))
 						db.session.commit()
 						temp_tag=Tag.query.filter_by(name=tag).first()
 						temp_tag.projects.append(project)
