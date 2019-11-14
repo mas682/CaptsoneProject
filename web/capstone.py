@@ -6,6 +6,7 @@ from ProjectForm import ProjectForm, TagForm, SearchForm
 import math
 import operator
 import nltk
+import re
 
 
 
@@ -330,8 +331,23 @@ def projects(project_id = None, search_tags = None):
 def find_tags(tag=None):
 	# set the search in the cookie
 	session['search'] = tag
+	tags = []
+	# see if there are any quoted strings in the search
+	qlist = re.findall("\".*\"", tag)
+	if(len(qlist) > 0):
+		for t in qlist:
+			# remove the quoted string fromt the search
+			tag = tag.replace(t, "")
+			# remove the quotes from the quoted string
+			t = t.replace('\"', '')
+			tags.append(t)
+	# remove any extra white space from search string
+	tag = tag.strip()
+	# get the tokenized tags from the search string
+	if len(tag) > 0:
+		tags = tags + tag.split(" ")
 	# get the individual tags within the search
-	tags = tag.split(" ")
+
 	# get the number of tags in the search
 	tag_length = len(tags)
 	# stores the projects that are assoicated with the tags
