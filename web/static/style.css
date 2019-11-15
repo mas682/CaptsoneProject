@@ -272,6 +272,82 @@ main {
 	margin-top: 5px;
 	margin-bottom: 5px;
 }
+
+/************************************************************
+ my account input form formatting
+*************************************************************/
+
+.password_input_box{
+	width: 50%;
+	border-radius: 5px;
+	margin-right: 5%;
+	margin-left: 5%;
+	font-size: 1em;
+	font-weight: normal;
+	border: 2px solid #D3D3D3;
+	margin-bottom: 5px;
+}
+
+.password_input_box_error{
+	width: 50%;
+	border-radius: 5px;
+	margin-left: 5%;
+	margin-right: 5%;
+	font-size: 1em;
+	font-weight: normal;
+	border: 2px solid red;
+}
+
+
+.email_input_box_error{
+	width: 50%;
+	margin-top: 2px;
+	margin-bottom: 5px;
+	border-radius: 5px;
+	margin-right: 5%;
+	margin-left: 5%;
+	font-size: 1em;
+	font-weight: normal;
+	border: 2px solid red;
+}
+
+.email_input_box{
+	width: 50%;
+	margin-top: 2px;
+	margin-bottom: 5px;
+	border-radius: 5px;
+	margin-right: 5%;
+	margin-left: 5%;
+	font-size: 1em;
+	font-weight: normal;
+	border: 2px solid #D3D3D3;
+}
+
+.password_box{
+	display: flex;
+	flex-direction: column;
+	flex-wrap: wrap;
+	width: 100%;
+	padding-top: 10px;
+	align-content: flex-start;
+}
+
+#error_text
+{
+	height: 1em;
+	margin-bottom: 2px;
+
+}
+
+.password_box_box {
+	width: 100%;
+}
+
+.password_text {
+	width: 100%;
+	margin-left: 5%;
+}
+
 /************************************************************
   project input form formatting
 *************************************************************/
@@ -308,6 +384,7 @@ main {
 .input_error{
     color:red;
 	margin-left: 5%;
+	font-size: 1em;
 }
 
 .submit_changes_button {

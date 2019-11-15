@@ -2,7 +2,7 @@ from flask import Flask, request, session, url_for, redirect, render_template, a
 from sqlalchemy.exc import IntegrityError
 from app import *
 from models import db, Tag, User, Project, Applicantsclass, t_projecttags, t_applicantstags
-from ProjectForm import ProjectForm, TagForm, SearchForm
+from ProjectForm import ProjectForm, TagForm, SearchForm, ApplicantForm
 import math
 import operator
 import nltk
@@ -703,13 +703,135 @@ def create_tags():
 			return redirect(url_for('home'))
 	return render_template('create_tags.html', form=form, tags=temp_tags, suggested_tags=suggested_tags)
 
-@app.route('/myaccount')
+
+def update_email(form, list):
+	error = None
+	if (g.user.provider or g.user.admin) and '@' not in form.email.data:
+		error = "You must enter a email address"
+		if 'update_email' not in list:
+			list.append('update_email')
+	elif g.user and not(g.user.provider or g.user.admin) and '@pitt.edu' not in form.email.data:
+
+		error = "You must enter your University of Pittsburgh email"
+		if 'update_email' not in list:
+			list.append('update_email')
+	else:
+		try:
+			g.user.email = form.email.data
+			print(form.email.data)
+			print(g.user.email)
+			db.session.commit()
+			list.remove('edit_email')
+			if 'update_email' in list:
+				list.remove('update_email')
+			session.pop('edit_account', None)
+			session['edit_account'] = list
+		except IntegrityError:
+			db.session.rollback()
+			error = "Email aleady exists in the system"
+	return error
+
+def update_password(form, list):
+	success = False
+	if(len(form.password.data) < 1):
+		form.password.errors.append("A password must be entered")
+		print(form.password.data)
+	if(len(form.password2.data) < 1):
+		form.password2.errors.append("A password must be entered")
+	if(len(form.password3.data) < 1):
+		form.password3.errors.append("A password must be entered")
+	elif(g.user.password != form.password.data):
+		form.password.errors.append("The password is incorrect")
+		form.password.data=""
+	elif(len(form.password2.data) < 6):
+		form.password2.errors.append("Password must be at least 6 characters")
+	elif(form.password3.data != form.password2.data):
+		form.password3.errors.append("This password does not match the new password")
+	elif(len(form.password2.data) > 20):
+		form.password2.errors.append("Password cannot be greater than 20 characters")
+	elif(len(form.password3.data) > 20):
+		form.password3.errors.append("Password cannot be greater than 20 characters")
+	elif(form.password2.data == g.user.password):
+		form.password2.errors.append("The new password matches the old password")
+	else:
+		try:
+			g.user.password = form.password2.data
+			print(form.password2.data)
+			db.session.commit()
+			if 'update_pass' in list:
+				list.remove('update_pass')
+			session.pop('edit_account', None)
+			session['edit_account'] = list
+			print("password updated")
+			success = True
+		except IntegrityError:
+			db.session.rollback()
+			form.password1.errors.append("There was an error updating the password")
+	form.password.data=""
+	form.password2.data=""
+	form.password3.data=""
+	return success
+
+@app.route('/my_account', methods=['Get', 'Post'])
 def account():
 	if not g.user:
 		flash("You are not logged in")
 		return redirect(url_for('home'))
 	else:
-		return render_template('my_account.html')
+		form = ApplicantForm(request.form)
+		password_errors = []
+		email_errors = []
+		if request.method == 'POST':
+			user = User.query.filter_by(user_id=g.user.user_id).first()
+			list = []
+			if 'edit_account' not in session:
+				list = []
+				session['edit_account'] = []
+			else:
+				list = session['edit_account']
+				for t in list:
+					print(t)
+			if 'edit_email' in request.form:
+				print("Here1")
+				if 'edit_email' not in list:
+					list.append('edit_email')
+				if 'update_pass' in list:
+					list.remove('update_pass')
+				session.pop('edit_account', None)
+				session['edit_account'] = list
+			# if update email button pushed
+			elif 'update_email' in request.form:
+				# mark that the button pushed indicated updating email, not password
+				if 'edit_email' not in list:
+						return render_template('my_account.html', edit = session['edit_account'], form=form)
+				if 'update_pass' in list:
+					list.remove('update_pass')
+				error = None
+				if not form.validate_on_submit():
+					error = update_email(form, list)
+				else:
+					error = update_email(form, list)
+				form.email.errors.append(error)
+				return render_template('my_account.html', edit = session['edit_account'], form=form)
+			elif 'update_password' in request.form:
+				if 'update_email' in list:
+					list.remove('update_email')
+				if('update_pass' not in list):
+					list.append('update_pass')
+				success = False
+				if not form.validate_on_submit():
+					success = update_password(form, list)
+				else:
+					success = update_password(form, list)
+				if success:
+					success = "Your password has been updated"
+				else:
+					success = None
+				return render_template('my_account.html', edit = session['edit_account'], form=form, success = success)
+			elif 'edit_tags' in request.form:
+				return redirect(url_for('my_tags'))
+			return render_template('my_account.html', edit = session['edit_account'], form=form)
+		return render_template('my_account.html', edit = [], form = form, email_errors = [], password_errors = [])
 #########################################################################################
 # Other page routes
 #########################################################################################
@@ -756,10 +878,8 @@ def demo_nltk(title, description, background):
 		finalTags = finalTags + tags
 	tag_set = set()
 	for tag in finalTags:
-		tag_arr = tag.split(" ")
-		for t in tag_arr:
-			t = t.lower()
-			t = t.capitalize()
+			t = tag.lower()
+			t = tag.capitalize()
 			suggested = Tag.query.filter_by(name=t).first()
 			if not suggested:
 				db.session.add(Tag(name=t, freq=0))
@@ -797,6 +917,8 @@ def home():
 		return redirect(url_for('home'))
 	else:
 		if g.user:
+			if 'edit_account' in session:
+				session.pop('edit_account', None)
 			if g.user.new_user:
 				g.user.new_user = False
 				db.session.commit()

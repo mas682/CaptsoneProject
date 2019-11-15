@@ -1,9 +1,109 @@
 {% extends "base.html" %}
 
-{% block title %}Home{% endblock %}
+{% block title %}Pitt Capstone Website{% endblock %}
 
 {% block main %}
-	{# neat! you can actually "call" other blocks like methods... since they are. #}
-	<h2>{{ self.title() }}</h2>
-		<p> This page will allow a user to manage their account...to be implemented later
+	{% if g.user %}
+        <form id = "editAccountForm" action = "" method="Post" novalidate>
+			{{ form.hidden_tag()}}
+		</form>
+        <h2 class = "projectHeaders">Email</h2>
+		{% if 'edit_email' not in edit %}
+			<button form = "editAccountForm" class = "editProjectButton" name = "edit_email" type="submit">Edit Email</button>
+            <p> {{g.user.email}}
+        {% else %}
+			{% if form.email.errors and 'update_email' in edit %}
+				{{form.email(class = "email_input_box_error", form="editAccountForm")}}
+				{% for error in form.email.errors %}
+					<span class = "input_error">{{ error }}</span>
+				{% endfor %}
+			{% else %}
+				<br>
+            	{{form.email(class = "email_input_box", form="editAccountForm")}}
+			{% endif %}
+            <br>
+			<div class = "submit_changes_button">
+				<button type="submit" name="update_email" form="editAccountForm">Update Email</button>
+			</div>
+			<br>
+        {% endif %}
+        <h2 class = "projectHeaders">Password</h2>
+		{% if success %}
+			<p> {{success}}
+		{% endif %}
+		<div class = "password_box">
+			<div class = "password_text">
+				Old Password:
+			</div>
+			{% if 'update_pass' in edit and form.password.errors %}
+				<div class = "password_box_box">
+					{{form.password(class = "password_input_box_error", form="editAccountForm")}}
+				</div>
+				<div id = "error_text">
+					{% for error in form.password.errors %}
+						<span class="input_error">{{ error }}</span>
+					{% endfor %}
+				</div>
+			{% else %}
+				<div class = "password_box_box">
+					{{form.password(class = "password_input_box", form="editAccountForm")}}
+				</div>
+			{% endif %}
+		</div>
+		<div class = "password_box">
+			<div class = "password_text">
+				New Password:
+			</div>
+			{% if form.password2.errors and 'update_pass' in edit %}
+				<div class = "password_box_box">
+					{{form.password2(class = "password_input_box_error", form="editAccountForm")}}
+				</div>
+				<div id = "error_text">
+					{% for error in form.password2.errors %}
+						<span class="input_error">{{ error }}</span>
+					{% endfor %}
+				</div>
+			{% else %}
+				<div class = "password_box_box">
+					{{form.password2(class = "password_input_box", form="editAccountForm")}}
+				</div>
+			{% endif %}
+		</div>
+		<div class = "password_box">
+			<div class = "password_text">
+				Confirm New Password:
+			</div>
+			{% if form.password3.errors and 'update_pass' in edit %}
+				<div class = "password_box_box">
+					{{form.password3(class = "password_input_box_error", form="editAccountForm")}}
+				</div>
+				<div id = "error_text">
+					{% for error in form.password3.errors %}
+						<span class="input_error">{{ error }}</span>
+					{% endfor %}
+				</div>
+			{% else %}
+				<div class = "password_box_box" id = "password3">
+					{{form.password3(class = "password_input_box", form="editAccountForm")}}
+				</div>
+			{% endif %}
+		</div>
+		<div class = "submit_changes_button">
+			<button type="submit" name="update_password" form="editAccountForm">Update Password</button>
+		</div>
+		<br>
+        <h2 class = "projectHeaders">My Tags</h2>
+        {% if 'edit_tags' not in edit %}
+            <button type="submit" class = "editProjectButton" form="editAccountForm" name = "edit_tags">Edit Tags</button>
+            {% if g.user.u_tags %}
+                <div id = "tags_created">
+                    {% for tag in g.user.u_tags %}
+                        <div id = "tag_button_container">
+                            <input type="submit" name="submit" value="{{tag.name}}" id="TagButton">
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+		{% endif %}
+	{% endif %}
 {% endblock %}
