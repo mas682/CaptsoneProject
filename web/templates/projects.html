@@ -9,13 +9,18 @@
 		</form>
 		<div class = "search_box">
 			<div class = "search_bar_label">
-				<h3 id = "page_header">{{form.search_tags.label()}}
+				<h3 id = "page_header">{{form.search.label()}}
 			</div>
 			<div class = "searchInputBox">
-				{{form.search_tags(class_ = "searchBox", id = "search_tag_input", form="searchForm")}}
+				{{form.search(class_ = "searchBox", id = "search_tag_input", form="searchForm")}}
+			</div>
+		</div>
+		<div class = "searchButtonBox">
+			<div class = "addSearchButton">
+				{{form.type(class_ = "searchButton", type="submit", formaction = url_for('projects', index=len), form="searchForm", value = "Search by tag")}}
 			</div>
 			<div class = "addSearchButton">
-				<input class = "searchButton" type="submit" formaction = "{{url_for('projects', index=len)}}" form="searchForm" value = "Search" ></input>
+				{{form.type(class_ = "searchButton", type="submit", formaction = url_for('projects', index=len), form="searchForm", value = "Search by keyword")}}
 			</div>
 		</div>
 		<h3 id = "header_indent"> The current projects are listed below: </h3>
@@ -43,7 +48,8 @@
 		</table>
 		<form id = "tableIndexForm" action = "{{url_for('projects')}}" method="GET" novalidate>
             {{ form.hidden_tag() }}
-			<input type="hidden" name="search_tags" form="tableIndexForm" value="{{search}}"></input>
+			<input type="hidden" name="search" form="tableIndexForm" value="{{search}}"></input>
+			<input type="hidden" name="type" form="tableIndexForm" value="{{type}}"></input>
         </form>
 		<div class = "submit_data_button">
 		<div>
@@ -101,10 +107,10 @@
 		</form>
 		<div id = "insert_tags">
 			<div id = "tagBarLabel">
-				<h3>{{form.search_tags.label()}}
+				<h3>{{form.search.label()}}
 			</div>
 			<div id = "tagInputBox">
-				{{form.search_tags(class = "inputBox", id = "search_tag_input", form="searchForm")}}
+				{{form.search(class = "inputBox", id = "search_tag_input", form="searchForm")}}
 			</div>
 			<div class = "addTagButton">
 				<button type="submit" formaction = "{{url_for('projects', index=len)}}" form="searchForm" >Search</button>

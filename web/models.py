@@ -32,7 +32,7 @@ def initdb_command():
 class Tag(db.Model):
 	__tablename__ = 'tags'
 	tid = db.Column(db.Integer, primary_key=True)
-	name = db.Column(db.String(24), unique=True)
+	name = db.Column(db.String(50), unique=True)
 	users = db.relationship('User', secondary='applicantstags', backref = db.backref('u_tags', lazy='dynamic'), lazy = 'dynamic', cascade="all, delete")
 	projects = db.relationship('Project', secondary='projecttags', backref = db.backref('p_tags', lazy='dynamic'), lazy ='dynamic', cascade="all, delete")
 	freq=db.Column(db.Integer, nullable=False)
@@ -46,6 +46,18 @@ class User(db.Model):
 	admin = db.Column(db.Boolean)
 	new_user = db.Column(db.Boolean)
 
+class KeyWord(db.Model):
+	__tablename__ = 'keywords'
+	kid = db.Column(db.Integer, primary_key=True)
+	name = db.Column(db.String(24), unique=True)
+	projects = db.relationship('Project', secondary = 'projectkeywords', backref = db.backref('p_keys', lazy='dynamic'), lazy = 'dynamic', cascade = 'all, delete')
+
+
+t_projectkeywords = db.Table(
+	'projectkeywords', db.metadata,
+	db.Column('pid', db.Integer, db.ForeignKey('projects.pid'), primary_key = True),
+	db.Column('kid', db.ForeignKey('keywords.kid'), primary_key = True)
+)
 
 class Applicantsclass(db.Model):
 	__tablename__ = 'applicantsclasses'
@@ -76,21 +88,5 @@ class Project(db.Model):
 t_projecttags = db.Table(
     'projecttags', db.metadata,
     db.Column('p_id', db.Integer, db.ForeignKey('projects.pid'), primary_key = True),
-    db.Column('tid', db.ForeignKey('tags.tid'), primary_key = True),
+    db.Column('tid', db.ForeignKey('tags.tid'), primary_key = True)
 )
-
-
-
-
-
-
-
-
-
-
-# // !!!!!!!!!!!!!!!
-
-
-
-	#def __repr__(self):
-	#	return '<User {}>'.format(self.username)

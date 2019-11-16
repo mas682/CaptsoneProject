@@ -1,13 +1,13 @@
 from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash
 from sqlalchemy.exc import IntegrityError
 from app import *
-from models import db, Tag, User, Project, Applicantsclass, t_projecttags, t_applicantstags
+from models import db, Tag, User, Project, Applicantsclass, t_projecttags, t_applicantstags, KeyWord
 from ProjectForm import ProjectForm, TagForm, SearchForm, ApplicantForm
 import math
 import operator
 import nltk
 import re
-
+import string
 
 
 #########################################################################################
@@ -328,6 +328,82 @@ def projects(project_id = None, search_tags = None):
 
 # method for handling getting correct projects to return based on search
 # the argument is a string seperated by spaces
+# searching keywords
+def find_keywords(keyword):
+	# set the search in the cookie
+	session['keyword'] = keyword
+	keywords = []
+	# see if there are any quoted strings in the search
+	qlist = re.findall("\".*\"", keyword)
+	if(len(qlist) > 0):
+		for t in qlist:
+			# remove the quoted string fromt the search
+			keyword = keyword.replace(t, "")
+			# remove the quotes from the quoted string
+			t = t.replace('\"', '')
+			keywords.append(t)
+	# remove any extra white space from search string
+	keyword = keyword.strip()
+	# get the tokenized tags from the search string
+	if len(keyword) > 0:
+		keywords = keywords + keyword.split(" ")
+	# get the individual tags within the search
+
+	# get the number of tags in the search
+	keyword_length = len(keywords)
+	# stores the projects that are assoicated with the tags
+	temp_projects= []
+	# stores the sorted projects based on how many of the tags correspond to the projects
+	sorted_output = []
+	projects = []
+	# add all the projects associated with each individual tag to temp_projects
+	# but do not add duplicates
+	for num in range(keyword_length):
+		# get the tag itself
+
+		#new:
+		temp_key = KeyWord.query.filter(KeyWord.name.startswith(keywords[num])).all()
+		# if the tag does not exist in the database, skip to next tag to check
+		if temp_key is None:
+			continue
+		# if the tag exists, check the projects it is associated with
+		for t in temp_key:
+			for proj in t.projects:
+				# if temp_projects does not have this project yet, add it to it
+				if proj not in temp_projects:
+					temp_projects.append(proj)
+	# iterate through all the projects in temp_projects to see how many of the searched for tags
+	# are in each individual project
+	for proj in temp_projects:
+		# counter used to see how many of the searched terms match what is being looked for
+		counter = 0
+		# iterate through the tags that are being searched for
+		for num in range(keyword_length):
+			# get the actual tag
+			temp_key = KeyWord.query.filter(KeyWord.name.startswith(keywords[num])).all()
+			# if the tag does not exist, skip this search term
+			if temp_key is None:
+				continue
+			for t in temp_key:
+				# if the tag to look for is in this project, increment the counter
+				if t in proj.p_keys:
+					counter = counter + 1
+		# after the inner for loop, add a (project id, tag occurrences) tuple to sorted_output
+		sorted_output.append((proj.pid, counter))
+	# sort the output by the number of occurences of a tag in a project
+	# thus, if every term searched for is in a project, it should be at the front of the list
+	sorted_output.sort(key = operator.itemgetter(1), reverse=True)
+
+	# add the projects to a list based off of the indexes in the sorted_output
+	for pair in sorted_output:
+		project = Project.query.filter_by(pid=pair[0]).first()
+		projects.append(project)
+	# return the projects to be output
+	return projects
+
+
+# method for handling getting correct projects to return based on search
+# the argument is a string seperated by spaces
 def find_tags(tag=None):
 	# set the search in the cookie
 	session['search'] = tag
@@ -412,11 +488,19 @@ def search_projects(request=None):
 	length = 0
 	current_page = 0
 	session['current_page'] = 0
-	if request.method == "GET" and (request.args.get('search_tags') or request.args.get('index')):
+	if request.method == "GET" and (request.args.get('search') or request.args.get('index')):
 		# if the user has entered some tag/s to search for, do this
 		if searchForm.validate():
-			tag = searchForm.search_tags.data
-			projects = find_tags(tag)
+			session['search'] = searchForm.search.data
+			session['type'] = searchForm.type.data
+			search = searchForm.search.data
+			print(searchForm.type.data)
+			if searchForm.type.data == "Search by tag":
+				projects = find_tags(search)
+				for p in projects:
+					print(p.title)
+			else:
+				projects = find_keywords(search)
 		# if no tags entered, return list of all pages
 		else:
 			current_page = 0
@@ -439,6 +523,7 @@ def search_projects(request=None):
 	else:
 		current_page = 0
 		session['search'] = ""
+		session['type'] = ""
 		session['current_page'] = 0
 		projects = Project.query.all()
 		length = len(projects)
@@ -448,7 +533,7 @@ def search_projects(request=None):
 		session.pop('edit', None)
 	length = math.ceil(length/10.0)
 
-	return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=length, current_page=session['current_page']+1, search=session['search'])
+	return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=length, current_page=session['current_page']+1, search=session['search'], type=session['type'])
 
 # method for handling a request for the home page
 def get_table_page(request=None):
@@ -663,10 +748,12 @@ def create_tags():
 				contact = my_dict['contact'],
 				user = g.user.user_id))
 			db.session.commit()
+			text = my_dict['title'] + " " +  my_dict['background'] + " " + my_dict['description']
+# this line could cause issues if two projects have the same title....
+			project = Project.query.filter_by(title = my_dict['title']).filter_by(user = g.user.user_id).first()
+			create_inverted_index(text, project)
 		# if there are tags in the dict...returns false if empty
 			if temp_tags:
-# this line could cause issues if two projects have the same title....
-				project = Project.query.filter_by(title = my_dict['title']).first()
 				# get each tag in the dict
 				for tag in temp_tags:
 					# see if the tag already exists in the database
@@ -703,6 +790,48 @@ def create_tags():
 			return redirect(url_for('home'))
 	return render_template('create_tags.html', form=form, tags=temp_tags, suggested_tags=suggested_tags)
 
+# this method will strip a string of all punctuation excpet for '
+# also returns a list of tokenized strings
+# this method is used for generating the inverted index table of terms referenced in projects
+def get_key_words(text):
+	punct = "!\"#$%&()*+,-./:;<=>?@[\]^_`{|}~”“"
+	temp = text.translate(str.maketrans('', '', punct))
+	tokens = None
+	if temp:
+		tokens = temp.split(" ")
+	for t in tokens:
+		print(t)
+	return tokens
+
+# method handles generating the inverted index for the terms referenced in a project
+def create_inverted_index(text, project):
+	tokens = get_key_words(text)
+	if tokens:
+		for term in tokens:
+			keyword = KeyWord.query.filter_by(name=term).first()
+			if not keyword:
+				try:
+					db.session.add(KeyWord(name=term)) # need to add project here..
+					db.session.commit()
+					keyword = KeyWord.query.filter_by(name=term).first()
+					if project not in keyword.projects:
+						keyword.projects.append(project)
+						db.session.commit()
+					print("Keyword " + str(term) + " added to db")
+				# if fails, means the keword already exists
+				except IntegrityError:
+					db.session.rollback()
+					keyword = KeyWord.query.filter_by(name=term).first()
+					if project not in keyword.projects:
+						keyword.projects.append(project)
+						# want to consider adding frequency of term in project...
+						db.session.commit()
+					print("Keyword " + str(term) + " added to db")
+			else:
+				if project not in keyword.projects:
+					keyword.projects.append(project)
+					db.session.commit()
+				print("Keyword " + str(term) + " added to db")
 
 def update_email(form, list):
 	error = None
@@ -916,6 +1045,9 @@ def home():
 			return redirect(url_for('home'))
 		return redirect(url_for('home'))
 	else:
+		p = find_keywords("embodied Unix")
+		for i in p:
+			print(i.title)
 		if g.user:
 			if 'edit_account' in session:
 				session.pop('edit_account', None)

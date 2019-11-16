@@ -242,17 +242,28 @@ main {
 }
 
 .searchInputBox {
-	width: 85%;
-	padding-left: 5%;
-}
-.searchButton {
 	width: 100%;
-}
-
-.addSearchButton {
-	width: 15%;
+	padding-left: 5%;
 	padding-right: 5%;
 }
+.searchButton {
+	width: 90%;
+	margin-left: 5%;
+	margin-right: 5%;
+}
+
+.searchButtonBox {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	width: 100%;
+	padding-top: 5px;
+	justify-content: center;
+}
+.addSearchButton {
+	width: 20%;
+}
+
 
 #page_header {
 	margin-bottom: 5px;
