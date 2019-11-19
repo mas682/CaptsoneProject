@@ -1,0 +1,6 @@
+For the previous sprint, we were able to make it so that a user could associate tags with themselves and suggest tags for them. 
+We were also able to make it so that users could search tags via stemming, meaning that they could search for micro and all tags that 
+begin with that will be returned.  We also added the ability to manage your account.  For the next sprint, we are going to try to add 
+the ability for users to rank tags based on their importance.  We may not be able to add the functionality for actually using this to 
+suggest projects though.  We are also going to add the ability to search through project descriptions for specific key words. And we will 
+also clean up some of the user interface to make it more functional.
