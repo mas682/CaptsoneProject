@@ -1,7 +1,7 @@
 from flask import Flask, request, session, url_for, redirect, render_template, abort, g, flash
 from sqlalchemy.exc import IntegrityError
 from app import *
-from models import db, Tag, User, Project, Applicantsclass, t_projecttags, t_applicantstags, KeyWord
+from models import db, Tag, User, Project, ApplicantTags, KeyWord
 from ProjectForm import ProjectForm, TagForm, SearchForm, ApplicantForm
 import math
 import operator
@@ -665,6 +665,28 @@ def create_project():
 			return redirect(url_for('create_tags'))
 	return render_template('create_project.html', form=form)
 
+# method to handle a user ranking their tags
+@app.route('/my_tags/values', methods=['Get', 'Post'])
+def tag_ranking():
+	if not g.user:
+		return redirect(url_for('home'))
+	temp_tags = []
+	output = None
+	if request.method == 'POST':
+		print(request.form)
+		for tag in request.form:
+			my_tag = ApplicantTags.query.filter_by(tid=tag).first()
+			my_tag.value = request.form[tag]
+		db.session.commit()
+		output = "Your tag values have been updated"
+
+	tag_ids = ApplicantTags.query.filter_by(uid=g.user.user_id).all()
+	for t in tag_ids:
+		tag = Tag.query.filter_by(tid=t.tid).first()
+		temp_tags.append([tag, t.value])
+	return render_template('tag_ranks.html', tags = temp_tags, output = output)
+
+
 @app.route('/my_tags', methods=['Get', 'Post'])
 def my_tags():
 	if not g.user:
@@ -674,7 +696,11 @@ def my_tags():
 	for tag in all_tags:
 		if tag.projects.first():
 			tags.append(tag)
-	temp_tags = g.user.u_tags
+	temp_tags = []
+	tag_ids = ApplicantTags.query.filter_by(uid = g.user.user_id).all()
+	for id in tag_ids:
+		tag = Tag.query.filter_by(tid = id.tid).first()
+		temp_tags.append(tag)
 	form = TagForm(request.form)
 	if request.method == 'POST':
 		if 'submit' in request.form:
@@ -682,12 +708,13 @@ def my_tags():
 			if temp_tag in temp_tags:
 				tag = request.form['submit']
 				remove_user_tag(tag)
-				temp_tags = User.query.filter_by(user_id=g.user.user_id).first().u_tags
+				temp_tags.remove(temp_tag)
 			else:
 				tag = request.form['submit']
 				print("Trying to add tag " + tag)
 				add_user_tag(tag)
-				temp_tags = User.query.filter_by(user_id=g.user.user_id).first().u_tags
+				t = Tag.query.filter_by(name=tag).first()
+				temp_tags.append(t)
 			return render_template('my_tags.html', tags=tags, my_tags = temp_tags, form=form)
 		elif form.submit2.data and form.validate_on_submit():
 			new_tag = form.tags.data.lower()
@@ -696,7 +723,8 @@ def my_tags():
 				pass
 			else:
 				add_user_tag(new_tag)
-				temp_tags = User.query.filter_by(user_id=g.user.user_id).first().u_tags
+				t = Tag.query.filter_by(name=new_tag).first()
+				temp_tags.append(t)
 			return render_template('my_tags.html', tags=tags, my_tags = temp_tags, form=form)
 	tags.sort(key=lambda x: x.name)
 	return render_template('my_tags.html',tags=tags, form=form, my_tags = temp_tags)
@@ -709,8 +737,9 @@ def add_user_tag(tag):
 		if tag == tag_list.first().name:
 			temp_tag = tag_list.first()
 			# make sure user not associated with tag before trying to add user to it
-			if g.user not in temp_tag.users:
-				temp_tag.users.append(g.user)
+			users = ApplicantTags.query.filter_by(tid = temp_tag.tid).filter_by(uid = g.user.user_id).first()
+			if not users:
+				db.session.add(ApplicantTags(uid=g.user.user_id, tid=temp_tag.tid, value=3))
 			# otherwise, need to create the tag in the database and
 			# add the user to it
 			# probably redundant but just in case
@@ -718,12 +747,13 @@ def add_user_tag(tag):
 			db.session.add(Tag(name=tag, freq=0))
 			db.session.commit()
 			temp_tag=Tag.query.filter_by(name=tag).first()
-			temp_tag.users.append(g.user)
+			db.session.add(ApplicantTags(uid=g.user.user_id, tid=temp_tag.tid, value=3))
 	else:
 		db.session.add(Tag(name=tag, freq=0))
 		db.session.commit()
 		temp_tag=Tag.query.filter_by(name=tag).first()
-		temp_tag.users.append(g.user)
+		db.session.add(ApplicantTags(uid=g.user.user_id, tid=temp_tag.tid, value=3))
+		#temp_tag.users.append(g.user, 3)
 	db.session.commit()
 
 # method to handle removing a tag from a user
@@ -736,9 +766,10 @@ def remove_user_tag(tag):
 		if tag == tag_list.first().name:
 			temp_tag = tag_list.first()
 			# make sure user already associated with the tag
-			if g.user in temp_tag.users:
-				temp_tag.users.remove(g.user);
-		db.session.commit()
+			utag = ApplicantTags.query.filter_by(uid = g.user.user_id).filter_by(tid = temp_tag.tid).first()
+			if utag:
+				db.session.delete(utag)
+				db.session.commit()
 
 @app.route('/create_project/create_tags', methods=['Get', 'Post'])
 def create_tags():
@@ -943,6 +974,12 @@ def account():
 		flash("You are not logged in")
 		return redirect(url_for('home'))
 	else:
+		my_tags = []
+		tag_ids = ApplicantTags.query.filter_by(uid=g.user.user_id).all()
+		for tag in tag_ids:
+			t = Tag.query.filter_by(tid=tag.tid).first()
+			my_tags.append(t)
+			print(t)
 		form = ApplicantForm(request.form)
 		password_errors = []
 		email_errors = []
@@ -968,7 +1005,7 @@ def account():
 			elif 'update_email' in request.form:
 				# mark that the button pushed indicated updating email, not password
 				if 'edit_email' not in list:
-						return render_template('my_account.html', edit = session['edit_account'], form=form)
+						return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags)
 				if 'update_pass' in list:
 					list.remove('update_pass')
 				error = None
@@ -977,7 +1014,7 @@ def account():
 				else:
 					error = update_email(form, list)
 				form.email.errors.append(error)
-				return render_template('my_account.html', edit = session['edit_account'], form=form)
+				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags)
 			elif 'update_password' in request.form:
 				if 'update_email' in list:
 					list.remove('update_email')
@@ -992,11 +1029,11 @@ def account():
 					success = "Your password has been updated"
 				else:
 					success = None
-				return render_template('my_account.html', edit = session['edit_account'], form=form, success = success)
+				return render_template('my_account.html', edit = session['edit_account'], form=form, success = success, tags=my_tags)
 			elif 'edit_tags' in request.form:
 				return redirect(url_for('my_tags'))
-			return render_template('my_account.html', edit = session['edit_account'], form=form)
-		return render_template('my_account.html', edit = [], form = form, email_errors = [], password_errors = [])
+			return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags)
+		return render_template('my_account.html', edit = [], form = form, email_errors = [], password_errors = [], tags=my_tags)
 #########################################################################################
 # Other page routes
 #########################################################################################
@@ -1093,8 +1130,13 @@ def home():
 				new_user=True
 			error = "You are logged in"
 			projects = get_table_page(request)
+			records = ApplicantTags.query.filter_by(uid = g.user.user_id).all()
+			tags = []
+			for r in records:
+				tag = Tag.query.filter_by(tid=r.tid).first()
+				tags.append(tag)
 			tag_string = ""
-			for tag in g.user.u_tags:
+			for tag in tags:
 				tag_string = tag_string + tag.name + " "
 			s_projects = get_suggested_table(request, tag_string)
 # will want to remove projects that this user is the owner of..

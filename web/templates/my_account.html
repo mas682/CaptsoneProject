@@ -95,9 +95,9 @@
         <h2 class = "projectHeaders">My Tags</h2>
         {% if 'edit_tags' not in edit %}
             <button type="submit" class = "editProjectButton" form="editAccountForm" name = "edit_tags">Edit Tags</button>
-            {% if g.user.u_tags %}
+            {% if tags %}
                 <div id = "tags_created">
-                    {% for tag in g.user.u_tags %}
+                    {% for tag in tags %}
                         <div id = "tag_button_container">
                             <input type="submit" name="submit" value="{{tag.name}}" id="TagButton">
                         </div>

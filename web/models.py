@@ -33,7 +33,6 @@ class Tag(db.Model):
 	__tablename__ = 'tags'
 	tid = db.Column(db.Integer, primary_key=True)
 	name = db.Column(db.String(50), unique=True)
-	users = db.relationship('User', secondary='applicantstags', backref = db.backref('u_tags', lazy='dynamic'), lazy = 'dynamic', cascade="all, delete")
 	projects = db.relationship('Project', secondary='projecttags', backref = db.backref('p_tags', lazy='dynamic'), lazy ='dynamic', cascade="all, delete")
 	freq=db.Column(db.Integer, nullable=False)
 
@@ -59,19 +58,10 @@ t_projectkeywords = db.Table(
 	db.Column('kid', db.ForeignKey('keywords.kid'), primary_key = True)
 )
 
-class Applicantsclass(db.Model):
-	__tablename__ = 'applicantsclasses'
-	uid = db.Column(db.ForeignKey('users.user_id'), primary_key=True, nullable=False)
-	_class = db.Column('class', db.String(20), primary_key=True, nullable=False)
-	user = db.relationship('User')
-
-
-t_applicantstags = db.Table(
-	'applicantstags', db.metadata,
-	db.Column('uid', db.ForeignKey('users.user_id'), primary_key=True, nullable=False),
-	db.Column('tid', db.ForeignKey('tags.tid'), primary_key=True, nullable=False)
-)
-
+class ApplicantTags(db.Model):
+	uid = db.Column(db.Integer, db.ForeignKey('users.user_id'), primary_key=True)
+	tid = db.Column(db.Integer, db.ForeignKey('tags.tid'), primary_key=True)
+	value = db.Column(db.Integer, nullable=False)
 
 #result = db.session.execute('SELECT * FROM my_table WHERE my_column = :val', {'val': 5})
 
