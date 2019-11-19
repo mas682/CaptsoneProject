@@ -440,6 +440,53 @@ def find_keywords(keyword):
 
 # method for handling getting correct projects to return based on search
 # the argument is a string seperated by spaces
+def find_tags_suggested(tags=None):
+	# stores the projects that are assoicated with the tags
+	temp_projects= []
+	# stores the sorted projects based on how many of the tags correspond to the projects
+	sorted_output = []
+	projects = []
+	# add all the projects associated with each individual tag to temp_projects
+	# but do not add duplicates
+	for tag in tags:
+		temp_tag = Tag.query.filter_by(tid = tag.tid).first()
+		# if the tag does not exist in the database, skip to next tag to check
+		if temp_tag is None:
+			continue
+		# if the tag exists, check the projects it is associated with
+		for proj in temp_tag.projects:
+			# if temp_projects does not have this project yet, add it to it
+			if proj not in temp_projects:
+				temp_projects.append(proj)
+	# iterate through all the projects in temp_projects to see how many of the searched for tags
+	# are in each individual project
+	for proj in temp_projects:
+		# counter used to see how many of the searched terms match what is being looked for
+		counter = 0
+		# iterate through the tags that are being searched for
+		for tag in tags:
+			# get the actual tag
+			temp_tag = Tag.query.filter_by(tid = tag.tid).first()
+			# if the tag does not exist, skip this search term
+			if temp_tag is None:
+				continue
+			# if the tag to look for is in this project, increment the counter
+			if temp_tag in proj.p_tags:
+				counter = counter + tag.value
+		# after the inner for loop, add a (project id, tag occurrences) tuple to sorted_output
+		sorted_output.append((proj.pid, counter))
+	# sort the output by the number of occurences of a tag in a project
+	# thus, if every term searched for is in a project, it should be at the front of the list
+	sorted_output.sort(key = operator.itemgetter(1), reverse=True)
+	# add the projects to a list based off of the indexes in the sorted_output
+	for pair in sorted_output:
+		project = Project.query.filter_by(pid=pair[0]).first()
+		projects.append(project)
+	# return the projects to be output
+	return projects
+
+# method for handling getting correct projects to return based on search
+# the argument is a string seperated by spaces
 def find_tags(tag=None):
 	# set the search in the cookie
 	session['search'] = tag
@@ -474,9 +521,6 @@ def find_tags(tag=None):
 		tags[num] = tags[num].lower()
 		tags[num] = tags[num].capitalize()
 
-		#old:
-		#temp_tag = Tag.query.filter_by(name=tags[num]).first()
-		#new:
 		temp_tag = Tag.query.filter(Tag.name.startswith(tags[num])).all()
 		# if the tag does not exist in the database, skip to next tag to check
 		if temp_tag is None:
@@ -571,7 +615,7 @@ def search_projects(request=None):
 
 	return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=length, current_page=session['current_page']+1, search=session['search'], type=session['type'])
 
-# method for handling a request for the home page
+# method to get a list of the users projects that they have listed
 def get_table_page(request=None):
 	projects = []
 	length = 0
@@ -608,8 +652,9 @@ def get_table_page(request=None):
 
 	return [projects, length, session['current_page'] + 1]
 
-def get_suggested_table(request, tag_string):
-	suggested_projects = find_tags(tag_string)
+# method to get a list of the users suggested projects
+def get_suggested_table(request, tags):
+	suggested_projects = find_tags_suggested(tags)
 	length = 0
 	current_page = 0
 	session['current_page2'] = 0
@@ -1131,14 +1176,7 @@ def home():
 			error = "You are logged in"
 			projects = get_table_page(request)
 			records = ApplicantTags.query.filter_by(uid = g.user.user_id).all()
-			tags = []
-			for r in records:
-				tag = Tag.query.filter_by(tid=r.tid).first()
-				tags.append(tag)
-			tag_string = ""
-			for tag in tags:
-				tag_string = tag_string + tag.name + " "
-			s_projects = get_suggested_table(request, tag_string)
+			s_projects = get_suggested_table(request,records)
 # will want to remove projects that this user is the owner of..
 			flash(error)
 			return render_template('home.html', new_user = new_user, my_projects=projects[0], len=projects[1], current_page=projects[2], suggested_projects = s_projects[0], len2=s_projects[1], current_page_suggested = s_projects[2])
