@@ -19,15 +19,47 @@
 							<div id="navLink">
 								<a class = "navBarLink" href="{{ url_for('home') }}">Home</a>
 							</div>
-						{% if g.user.provider %}
+						{% if g.user.provider and g.user.admin %}
+							<div id="navLinkDrop">
+								<button class="dropbtn">Projects</button>
+								<div class = "dropdown-content">
+									<a class = "navBarLink" href="{{ url_for('create_project') }}">Create Project</a>
+									<a class = "navBarLink" href="{{ url_for('projects')}}">Search Projects</a>
+								</div>
+							</div>
+							<div id="navLinkDrop">
+								<button class="dropbtn">Administrator</button>
+								<div class = "dropdown-content">
+									<a class = "navBarLink" href="{{ url_for('registerProvider') }}">Add Project Provider</a>
+									<a class = "navBarLink" href="">Manage Users</a>
+									<a class = "navBarLink" href="">Manage Projects</a>
+								</div>
+							</div>
+							<div id="navLinkDrop">
+								<button class="dropbtn">My Account</button>
+								<div class = "dropdown-content">
+									<a class = "navBarLink" href="{{ url_for('account') }}">Manage Account</a>
+									<a class = "navBarLink" href="{{ url_for('my_tags')}}">My Tags</a>
+									<a class = "navBarLink" href="{{ url_for('tag_ranking')}}">My Tag Values</a>
+								</div>
+							</div>
+							<div id="navLink">
+								<a class = "navBarLink" href="{{ url_for('logout') }}">Sign out</a>
+							</div>
+						{% elif g.user.provider %}
 							<div id="navLink">
 								<a class = "navBarLink" href="{{ url_for('create_project') }}">Create Project</a>
 							</div>
 							<div id="navLink">
 								<a class = "navBarLink" href="{{ url_for('projects') }}">Projects</a>
 							</div>
-							<div id="navLink">
-								<a class = "navBarLink" href="{{ url_for('account') }}">My account</a>
+							<div id="navLinkDrop">
+								<button class="dropbtn">Create Project</button>
+								<div class = "dropdown-content">
+									<a class = "navBarLink" href="{{ url_for('account') }}">Manage Account</a>
+									<a class = "navBarLink" href="{{ url_for('my_tags')}}">My Tags</a>
+									<a class = "navBarLink" href="{{ url_for('tag_ranking')}}">My Tag Values</a>
+								</div>
 							</div>
 							<div id="navLink">
 								<a class = "navBarLink" href="{{ url_for('logout') }}">Sign out</a>
@@ -39,8 +71,13 @@
 							<div id="navLink">
 								<a class = "navBarLink" href="{{ url_for('home') }}">Interested Projects</a>
 							</div>
-							<div id="navLink">
-								<a class = "navBarLink" href="{{ url_for('account') }}">My account</a>
+							<div id="navLinkDrop">
+								<button class="dropbtn">My Account</button>
+								<div class = "dropdown-content">
+									<a class = "navBarLink" href="{{ url_for('account') }}">Manage Account</a>
+									<a class = "navBarLink" href="{{ url_for('my_tags')}}">My Tags</a>
+									<a class = "navBarLink" href="{{ url_for('tag_ranking')}}">My Tag Values</a>
+								</div>
 							</div>
 							<div id="navLink">
 								<a class = "navBarLink" href="{{ url_for('logout') }}">Sign out</a>
