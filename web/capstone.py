@@ -175,8 +175,14 @@ def projects(project_id = None, search_tags = None):
 			else:
 				list.remove('edit_title')
 				session['edit'] = list
+				# remove previous keywords generated from the project description
+				# could cause issue if keyword removed but keyword was still in background or summary?
+				remove_keywords(project.title, project)
 				project.title = form2.title.data
 				db.session.commit()
+				# create text of them all in case keyword removed on accident in remove_keywords
+				text = project.title + " " + project.description + " " + project.background
+				create_inverted_index(text, project)
 		elif 'edit_background' in request.form:
 			if 'edit_background' not in list:
 				list.append('edit_background')
@@ -190,8 +196,14 @@ def projects(project_id = None, search_tags = None):
 			else:
 				list.remove('edit_background')
 				session['edit'] = list
+				# remove previous keywords generated from the project description
+				# could cause issue if keyword removed but keyword was still in background or summary?
+				remove_keywords(project.background, project)
 				project.background = form2.background.data
 				db.session.commit()
+				# create text of them all in case keyword removed on accident in remove_keywords
+				text = project.title + " " + project.description + " " + project.background
+				create_inverted_index(text, project)
 		elif 'edit_description' in request.form:
 			if 'edit_description' not in list:
 				list.append('edit_description')
@@ -205,8 +217,14 @@ def projects(project_id = None, search_tags = None):
 			else:
 				list.remove('edit_description')
 				session['edit'] = list
+				# remove previous keywords generated from the project description
+				# could cause issue if keyword removed but keyword was still in background or summary?
+				remove_keywords(project.description, project)
 				project.description = form2.description.data
 				db.session.commit()
+				# create text of them all in case keyword removed on accident in remove_keywords
+				text = project.title + " " + project.description + " " + project.background
+				create_inverted_index(text, project)
 		elif 'edit_contact' in request.form:
 			if 'edit_contact' not in list:
 				list.append('edit_contact')
@@ -325,6 +343,24 @@ def projects(project_id = None, search_tags = None):
 			abort(404)
 		else:
 			return render_template('project.html', project = project, edit=[], form=ProjectForm(request.form))
+
+# method to handle when a user updates a project description, background, or title
+# and thus new keywords must be generated
+# keyword is the string of keywords
+# project is the project to remove the keywords from
+def remove_keywords(keyword, project):
+	key_list = get_key_words(keyword)
+	for key in key_list:
+		key_tag = KeyWord.query.filter_by(name=key).first()
+		# if the keyword exists
+		if key_tag:
+			# if the keyword is associated with the project, remove it
+			if project in key_tag.projects:
+				try:
+					key_tag.projects.remove(project)
+					db.session.commit()
+				except:
+					print("Keyword no longer in the system")
 
 # method for handling getting correct projects to return based on search
 # the argument is a string seperated by spaces
