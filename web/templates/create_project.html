@@ -16,6 +16,15 @@
 		{% else %}
 			{{form.title(class = "project_input_box", id = "project_title_input")}}
 		{% endif %}
+		<dt>{{form.summary.label}}
+		{% if form.summary.errors %}
+			{{form.summary(class = "project_input_box_error", id = "project_background_input")}}
+			{% for error in form.summary.errors %}
+				<span class="input_error">{{ error }}</span>
+			{% endfor %}
+		{% else %}
+			{{form.summary(class = "project_input_box", id = "project_background_input")}}
+		{% endif %}
 		<dt>{{form.background.label}}
 		{% if form.background.errors %}
 			{{form.background(class = "project_input_box_error", id = "project_background_input")}}

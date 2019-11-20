@@ -8,6 +8,7 @@ class ProjectForm(Form):
     title = StringField("Title:",  validators=[InputRequired(message="You must enter a title")])
     background = TextAreaField("Background:", validators=[InputRequired(message="You must enter background information")])
     description = TextAreaField("Description:", validators=[InputRequired(message="You must enter a description")])
+    summary = TextAreaField("Summary:", validators=[InputRequired(message="You must enter a summary")])
     email = EmailField("Contact Email:", validators=[InputRequired(message="You must enter a contact email"), Email()])
     submit = SubmitField('Next')
 

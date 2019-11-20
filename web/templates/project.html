@@ -3,7 +3,7 @@
 {% block title %}Pitt Capstone Website{% endblock %}
 
 {% block main %}
-	{% if g.user.user_id == project.user %}
+	{% if g.user.user_id == project.user or g.user.admin %}
         <form id = "editProjectForm" action = "" method="Post" novalidate>
             {{ form.hidden_tag()}}
         </form>
@@ -12,7 +12,11 @@
         </form>
         <h2 class = "projectHeaders">Title</h2>
         {% if 'edit_title' not in edit %}
-                <button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">Edit Title</button>
+            <button form = "editProjectForm" class = "editProjectButton" name = "edit_title" type="submit">Edit Title</button>
+			{% if title_updated %}
+				<br>
+				<h3 class = "output_message" id = "password_update" >{{updated_email}}</h3>
+			{% endif %}
             <p> {{project.title}}
         {% else %}
 				{% if form.title.errors %}
@@ -29,7 +33,23 @@
 				<br>
         {% endif %}
 		<h2 class = "projectHeaders">Summary</h2>
-		<p> This needs implemented
+        {% if 'edit_summary' not in edit %}
+            <button type="submit" form = "editProjectForm" class = "editProjectButton" name="edit_summary">Edit Summary</button>
+            <p> {{project.summary}}
+        {% else %}
+			{% if form.summary.errors %}
+				{{form.summary(class = "project_input_box_error", id = "project_background_input", form="editProjectForm")}}
+				{% for error in form.summary.errors %}
+					<span class="input_error">{{ error }}</span>
+				{% endfor %}
+			{% else %}
+            	{{form.summary(class = "project_input_box", id = "project_background_input", form="editProjectForm")}}
+			{% endif %}
+			<div class = "submit_changes_button">
+				<button type="submit" name="update_summary" form="editProjectForm">Update Summary</button>
+			</div>
+			<br>
+        {% endif %}
         <h2 class = "projectHeaders">Background</h2>
         {% if 'edit_background' not in edit %}
             <button type="submit" form = "editProjectForm" class = "editProjectButton" name="edit_background">Edit Background</button>
@@ -134,7 +154,7 @@
 		    	<button type="submit" name="update_tags" form="tag_form" value = "create">Update Tags</button>
 			</div>
         {% endif %}
-		{% if g.user.user_id == project.user %}
+		{% if g.user.user_id == project.user or g.user.admin %}
 		<form id = "removeProjectForm" action = "" method="Post">
 			{{ form.hidden_tag()}}
 		</form>
@@ -165,6 +185,8 @@
 	{% else %}
 		<h2 class = "projectHeaders">Title</h2>
 		<p> {{project.title}}
+		<h2 class = "projectHeaders">Summary</h2>
+		<p> {{project.summary}}
 		<h2 class = "projectHeaders">Background</h2>
 		<p> {{project.background}}
 		<h2 class = "projectHeaders">Description</h2>

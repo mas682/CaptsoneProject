@@ -71,6 +71,7 @@ class Project(db.Model):
 	title = db.Column(db.String(100), nullable=False)
 	background = db.Column(db.String(5000))
 	description = db.Column(db.String(5000))
+	summary = db.Column(db.String(2000))
 	contact = db.Column(db.String(80))
 	user = db.Column(db.Integer, db.ForeignKey('users.user_id'))
 

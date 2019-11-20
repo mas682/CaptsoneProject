@@ -15,7 +15,7 @@
 				<h3 class = "output_message" id = "password_update" >{{updated_email}}</h3>
 			{% endif %}
             <div class = "inputBoxIndent">
- 				{{g.user.email}}
+ 				{{user.email}}
 			</div>
 			<br>
         {% else %}
@@ -39,14 +39,49 @@
 			</div>
 			<br>
         {% endif %}
-        <h2 class = "projectHeaders">Password</h2>
+        <h2 class = "projectHeaders">Account type(s)</h2>
+		{% if 'edit_email' not in edit %}
+			<button form = "editAccountForm" class = "editProjectButton" name = "edit_email" type="submit">Edit Account Type</button>
+            <ul>
+                {% if user.admin %}
+                    <li>Administrator
+                {% endif %}
+                {% if user.provider %}
+                    <li>Provider
+                {% else %}
+                    <li>Applicant
+                {% endif %}
+            </ul>
+			<br>
+        {% else %}
+			{% if form.email.errors and 'update_email' in edit %}
+				<br>
+				{{form.email(class = "email_input_box_error", form="editAccountForm")}}
+				{% if form.email.errors %}
+					<br>
+				{% endif %}
+				{% for error in form.email.errors %}
+					<span class = "input_error">{{ error }}</span>
+				{% endfor %}
+			{% else %}
+				<br>
+            	{{form.email(class = "email_input_box", form="editAccountForm")}}
+			{% endif %}
+            <br>
+			<div class = "submit_changes_button">
+				<button type="submit" name="update_email" form="editAccountForm">Update Email</button>
+				<button type="submit" name="cancel_update_email" form="editAccountForm">Cancel</button>
+			</div>
+			<br>
+        {% endif %}
+        <h2 class = "projectHeaders">Change Password</h2>
 		{% if success %}
 			<br>
 			<h3 class = "output_message" id = "password_update" >{{success}}</h3>
 		{% endif %}
 		<div class = "password_box">
 			<div class = "password_text">
-				Old Password:
+				Admin Password:
 			</div>
 			{% if 'update_pass' in edit and form.password.errors %}
 				<div class = "password_box_box">
@@ -105,21 +140,18 @@
 			<button type="submit" name="update_password" form="editAccountForm">Update Password</button>
 		</div>
 		<br>
-        <h2 class = "projectHeaders">My Tags</h2>
-        {% if 'edit_tags' not in edit %}
-            <button type="submit" class = "editProjectButton" form="editAccountForm" name = "edit_tags">Edit Tags</button>
-            {% if tags %}
-                <div id = "tags_created">
-                    {% for tag in tags %}
-                        <div id = "tag_button_container">
-                            <input type="submit" name="submit" value="{{tag.name}}" id="TagButton">
-                        </div>
+        {% if user.provider %}
+            <h2 class = "projectHeaders">Users Projects</h2>
+            {% if projects %}
+                <ul>
+                    {% for project in projects %}
+                        <li><a class = "projectLink" href = "{{ url_for('projects', project_id=project.pid) }}">{{project.title}}</a>
                     {% endfor %}
-                </div>
+                </ul>
 			{% else %}
 				<div class = "textPadding">
 					<br>
-					You do not have any tags associated with your account currently.
+					The user does not have any projects.
 				</div>
             {% endif %}
 		{% endif %}

@@ -103,6 +103,7 @@ def registerProvider():
 	if 'edit' in session:
 		session.pop('edit', None)
 	error = None
+	output = None
 	if request.method == 'POST':
 		if not request.form['email'] or '@' not in request.form['email']:
 			error = 'You have to enter a valid email address'
@@ -125,10 +126,9 @@ def registerProvider():
 				db.session.rollback()
 				error = 'The username is already taken'
 				return render_template('register_provider.html', error=error)
-			flash('New provider successfully registered!')
-			return redirect(url_for('home'))
+			output = 'New user successfully registered!'
 
-	return render_template('register_provider.html', error=error)
+	return render_template('register_provider.html', error=error, output = output)
 
 @app.route('/logout')
 def logout():
@@ -142,7 +142,6 @@ def logout():
 
 @app.route('/projects', methods=['GET', 'POST'])
 @app.route('/projects/<project_id>', methods=['GET', 'POST'])
-#def books(book_id=None):
 def projects(project_id = None, search_tags = None):
 	print(str(request.method))
 	project = None
@@ -151,7 +150,7 @@ def projects(project_id = None, search_tags = None):
 		if project is None:
 			abort(404)
 	if request.method == 'POST' and project_id is not None:
-		form2 = ProjectForm(request.form, background=project.background, description=project.description,
+		form2 = ProjectForm(request.form, background=project.background, summary=project.summary, description=project.description,
 					email=project.contact, title=project.title)
 		tag_form = TagForm(request.form)
 		project_removal_error = False
@@ -181,7 +180,28 @@ def projects(project_id = None, search_tags = None):
 				project.title = form2.title.data
 				db.session.commit()
 				# create text of them all in case keyword removed on accident in remove_keywords
-				text = project.title + " " + project.description + " " + project.background
+				text = project.title + " " + project.description + " " + project.background + " " + project.summary
+				create_inverted_index(text, project)
+		elif 'edit_summary' in request.form:
+			if 'edit_summary' not in list:
+				list.append('edit_summary')
+			session['edit']=list
+		elif 'update_summary' in request.form:
+			if not form2.validate_on_submit():
+				if form2.summary.errors:
+					return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
+			if 'edit_summary' not in list:
+				return render_template('project.html', project=project, edit=session['edit'], form=form2, tag_form = tag_form, remove_err = project_removal_error)
+			else:
+				list.remove('edit_summary')
+				session['edit'] = list
+				# remove previous keywords generated from the project description
+				# could cause issue if keyword removed but keyword was still in background or summary?
+				remove_keywords(project.summary, project)
+				project.summary= form2.summary.data
+				db.session.commit()
+				# create text of them all in case keyword removed on accident in remove_keywords
+				text = project.title + " " + project.description + " " + project.background + " " + project.summary
 				create_inverted_index(text, project)
 		elif 'edit_background' in request.form:
 			if 'edit_background' not in list:
@@ -202,7 +222,7 @@ def projects(project_id = None, search_tags = None):
 				project.background = form2.background.data
 				db.session.commit()
 				# create text of them all in case keyword removed on accident in remove_keywords
-				text = project.title + " " + project.description + " " + project.background
+				text = project.title + " " + project.description + " " + project.background + " " + project.summary
 				create_inverted_index(text, project)
 		elif 'edit_description' in request.form:
 			if 'edit_description' not in list:
@@ -223,7 +243,7 @@ def projects(project_id = None, search_tags = None):
 				project.description = form2.description.data
 				db.session.commit()
 				# create text of them all in case keyword removed on accident in remove_keywords
-				text = project.title + " " + project.description + " " + project.background
+				text = project.title + " " + project.description + " " + project.background + " " + project.summary
 				create_inverted_index(text, project)
 		elif 'edit_contact' in request.form:
 			if 'edit_contact' not in list:
@@ -331,6 +351,12 @@ def projects(project_id = None, search_tags = None):
 				else:
 					project_removal_error = "\"" + str(title) + "\"" + " does not match the project title"
 					print(str(title) + " does not match the project title")
+		elif 'cancel_remove_project' in request.form:
+			if 'remove_project' in list:
+				list.remove('remove_project')
+			if 'remove_project_final' in list:
+				list.remove('remove_project_final')
+			session['edit'] = list
 		return render_template('project.html', project=project, edit=session['edit'], form=form2,tag_form = tag_form, remove_err = project_removal_error)
 	# if there is not a project ID, this means go to the project page with a listing of the projects
 	elif project_id is None:
@@ -456,7 +482,7 @@ def find_tags_suggested(tags=None):
 		# if the tag exists, check the projects it is associated with
 		for proj in temp_tag.projects:
 			# if temp_projects does not have this project yet, add it to it
-			if proj not in temp_projects:
+			if proj not in temp_projects and proj.user != g.user.user_id:
 				temp_projects.append(proj)
 	# iterate through all the projects in temp_projects to see how many of the searched for tags
 	# are in each individual project
@@ -562,58 +588,100 @@ def find_tags(tag=None):
 
 # method for handling a request for the projects page
 def search_projects(request=None):
-	searchForm = SearchForm(request.args)
-	tag = None
-	projects = []
-	length = 0
-	current_page = 0
-	session['current_page'] = 0
-	if request.method == "GET" and (request.args.get('search') or request.args.get('index')):
-		# if the user has entered some tag/s to search for, do this
-		if searchForm.validate():
-			session['search'] = searchForm.search.data
-			session['type'] = searchForm.type.data
-			search = searchForm.search.data
-			print(searchForm.type.data)
-			if searchForm.type.data == "Search by tag":
-				projects = find_tags(search)
-				for p in projects:
-					print(p.title)
+	if g.user:
+		searchForm = SearchForm(request.args)
+		tag = None
+		projects = []
+		length = 0
+		current_page = 0
+		session['current_page'] = 0
+		if request.method == "GET" and (request.args.get('search') or request.args.get('index')):
+			# if the user has entered some tag/s to search for, do this
+			if searchForm.validate():
+				session['search'] = searchForm.search.data
+				session['type'] = searchForm.type.data
+				search = searchForm.search.data
+				print(searchForm.type.data)
+				if searchForm.type.data == "Search by tag":
+					projects = find_tags(search)
+				else:
+					projects = find_keywords(search)
+			# if no tags entered, return list of all pages
 			else:
-				projects = find_keywords(search)
-		# if no tags entered, return list of all pages
+				current_page = 0
+				session['current_page'] = 0
+				projects = Project.query.all()
+			length = len(projects)
+			# if the POST was done to get more entries from the table
+			if request.args.get('index'):
+				# get the page value that was clicked on
+				index = request.args.get('index')
+				index = int(index) -1
+				session['current_page'] = index
+				index = index * 10
+				if projects is not None:
+					projects = projects[index:index+10]
+			else:
+				if projects is not None:
+					projects = projects[0:10]
+		# if no search_tags argument or index
 		else:
 			current_page = 0
+			session['search'] = ""
+			session['type'] = ""
 			session['current_page'] = 0
 			projects = Project.query.all()
-		length = len(projects)
-		# if the POST was done to get more entries from the table
-		if request.args.get('index'):
-			# get the page value that was clicked on
-			index = request.args.get('index')
-			index = int(index) -1
-			session['current_page'] = index
-			index = index * 10
-			if projects is not None:
-				projects = projects[index:index+10]
-		else:
-			if projects is not None:
-				projects = projects[0:10]
-	# if no search_tags argument or index
+			length = len(projects)
+			projects = projects[current_page*10:current_page+10]
+		# remove edit as no longer editing a single project if on this page
+		if 'edit' in session:
+			session.pop('edit', None)
+		length = math.ceil(length/10.0)
+		return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=length, current_page=session['current_page']+1, search=session['search'], type=session['type'])
 	else:
-		current_page = 0
-		session['search'] = ""
-		session['type'] = ""
-		session['current_page'] = 0
-		projects = Project.query.all()
-		length = len(projects)
-		projects = projects[current_page*10:current_page+10]
-	# remove edit as no longer editing a single project if on this page
+		sample_projects = Project.query.all()
+		sample_projects = sample_projects[0:10]
+		for t in sample_projects:
+			print("1. " + t.title)
+		return render_template('projects.html', sample_projects=sample_projects)
+
+# method to get a list of the users and their associated projects
+def get_table_users(request=None):
+	users = []
+	temp_users = None
+	length = 0
+	actual_index = 0
+	if request.method == "GET" and request.args.get('index'):
+		temp_users = User.query.order_by(User.email).all()
+		length = len(temp_users)
+		if request.args.get('index'):
+			index = request.args.get('index')
+			actual_index = int(index)
+			index = int(index) -1
+			index = index * 10
+			if temp_users is not None:
+				temp_users = temp_users[index:index+10]
+		else:
+			if temp_user is not None:
+				temp_users = temp_users[0:10]
+	else:
+		actual_index = 1
+		temp_users = User.query.order_by(User.email).all()
+		length = len(temp_users)
+		temp_users = temp_users[0:10]
 	if 'edit' in session:
 		session.pop('edit', None)
 	length = math.ceil(length/10.0)
 
-	return render_template('projects.html', projects=projects, user=g.user, form=searchForm, len=length, current_page=session['current_page']+1, search=session['search'], type=session['type'])
+	projects = None
+	for user in temp_users:
+		projects = None
+		p = Project.query.filter_by(user=user.user_id).all()
+		if p is not None:
+			projects = p
+		users.append([user, projects])
+
+	return [users, length, actual_index]
 
 # method to get a list of the users projects that they have listed
 def get_table_page(request=None):
@@ -622,8 +690,6 @@ def get_table_page(request=None):
 	current_page = 0
 	session['current_page'] = 0
 	if request.method == "GET" and request.args.get('index'):
-		current_page = 0
-		session['current_page'] = 0
 		projects = Project.query.filter_by(user = g.user.user_id).all()
 		length = len(projects)
 		# if the POST was done to get more entries from the table
@@ -703,10 +769,10 @@ def create_project():
 								"background":form.background.data,
 								"description": form.description.data,
 								"contact": form.email.data,
+								"summary": form.summary.data,
 								"tags": [],
-								"suggested_tags": demo_nltk(form.title.data, form.background.data, form.description.data)}
+								"suggested_tags": demo_nltk(form.title.data, form.background.data, form.description.data, form.summary.data)}
 			session['tags'] = []
-			flash(form.title.data)
 			return redirect(url_for('create_tags'))
 	return render_template('create_project.html', form=form)
 
@@ -858,6 +924,7 @@ def create_tags():
 				background = my_dict['background'],
 				description = my_dict['description'],
 				contact = my_dict['contact'],
+				summary = my_dict['summary'],
 				user = g.user.user_id))
 			db.session.commit()
 			text = my_dict['title'] + " " +  my_dict['background'] + " " + my_dict['description']
@@ -1015,10 +1082,11 @@ def update_password(form, list):
 
 def remove_account(form, list):
 	success = False
-	if(len(form.password.data) < 1):
-		form.password.errors.append("Your password must be entered")
-	if(len(form.email.data) < 1):
-		form.email.errors.append("Your email must be entered")
+	if(len(form.password.data) < 1 or len(form.email.data) < 1):
+		if(len(form.password.data) < 1):
+			form.password.errors.append("Your password must be entered")
+		if(len(form.email.data) < 1):
+			form.email.errors.append("Your email must be entered")
 	elif(g.user.email != form.email.data):
 		form.email.errors.append("The email is incorrect")
 		form.email.data=""
@@ -1057,7 +1125,7 @@ def account():
 		for tag in tag_ids:
 			t = Tag.query.filter_by(tid = tag.tid).first()
 			my_tags.append(t)
-		form = ApplicantForm(request.form)
+		form = ApplicantForm(request.form, email=g.user.email)
 		form2=AccountRemovalForm(request.form)
 		password_errors = []
 		email_errors = []
@@ -1091,7 +1159,21 @@ def account():
 					error = update_email(form, list)
 				else:
 					error = update_email(form, list)
-				form.email.errors.append(error)
+				if error is not None:
+					form.email.errors.append(error)
+				if not form.email.errors:
+					output = "Your email has been updated"
+				else:
+					print(form.email.errors)
+					output = None
+				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2, updated_email = output)
+			elif 'cancel_update_email' in request.form:
+				if 'edit_email' in list:
+					list.remove('edit_email')
+				elif 'update_email' in list:
+					list.remove('update_email')
+				session.pop('edit_account', None)
+				session['edit_account'] = list
 				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2)
 			elif 'update_password' in request.form:
 				if 'update_email' in list:
@@ -1130,6 +1212,12 @@ def account():
 				else:
 					removal_success = None
 				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, removal_success = removal_success, form2=form2)
+			elif 'cancel_remove_account' in request.form:
+				if 'remove_account_final' in list:
+					list.remove('remove_account_final')
+				if 'remove_account' in list:
+					list.remove('remove_account')
+				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2)
 			return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2)
 		return render_template('my_account.html', edit = [], form = form, email_errors = [], password_errors = [], tags=my_tags, form2=form2)
 #########################################################################################
@@ -1137,11 +1225,12 @@ def account():
 #########################################################################################
 
 
-def demo_nltk(title, description, background):
+def demo_nltk(title, description, background, summary):
 	testStr=[]
 	testStr.append(title)
 	testStr.append(description)
 	testStr.append(background)
+	testStr.append(summary)
 	finalTags = []
 	for line in testStr:
 		print("LINE")
@@ -1192,11 +1281,32 @@ def demo_nltk(title, description, background):
 					tag_set.add(t)
 	print("\nTags:"+str(tag_set))
 	return list(tag_set)
+@app.route('/admin/users/<user>', methods=['GET', 'POST'])
+@app.route('/admin/users', methods=['GET'])
+def users(user=None):
+	if not g.user.admin:
+		return redirect(url_for('home'))
+	if user is not None:
+		user = User.query.filter_by(user_id=user).first()
+	if request.method == 'GET' and user is None:
+		if 'edit_account' in session:
+			session.pop('edit_account', None)
+		users = get_table_users(request)
+		for u in users[0]:
+			print(u[0].email)
+		return render_template('all_users.html', users = users[0], len = users[1], current_page=users[2])
+	elif request.method == 'GET' and user is not None:
+		form = ApplicantForm(request.form)
+		form2 = AccountRemovalForm(request.form)
+		projects = Project.query.filter_by(user=user.user_id).all()
+		return render_template('user.html', user=user, form=form, form2=form2, projects=projects)
+
 
 # The home page.
 @app.route('/', methods=['GET', 'POST'])
 def home():
-	"""Logs the user in."""
+	for p in session:
+		print(p + " " + str(session[p]))
 	error = None
 	new_user = False
 	if request.method == 'POST':
@@ -1216,9 +1326,6 @@ def home():
 			return redirect(url_for('home'))
 		return redirect(url_for('home'))
 	else:
-		p = find_keywords("embodied Unix")
-		for i in p:
-			print(i.title)
 		if g.user:
 			if 'edit_account' in session:
 				session.pop('edit_account', None)
@@ -1233,7 +1340,4 @@ def home():
 # will want to remove projects that this user is the owner of..
 			flash(error)
 			return render_template('home.html', new_user = new_user, my_projects=projects[0], len=projects[1], current_page=projects[2], suggested_projects = s_projects[0], len2=s_projects[1], current_page_suggested = s_projects[2])
-		else:
-			error = "You are not logged in"
-			flash(error)
 		return render_template('home.html')

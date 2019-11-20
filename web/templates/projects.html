@@ -42,7 +42,7 @@
 						</ul>
 					{% endif %}
 				</td>
-				<td class = "tableSummaryBox"> {{project.description}} </td>
+				<td class = "tableSummaryBox"> {{project.summary}} </td>
 			</tr>
 			{% endfor %}
 		</table>
@@ -117,8 +117,36 @@
 			</div>
 		</div>
 		<h3> There are no projects associted with the tag(s) "{{search}}"</h3>
+	{% else %}
+		<h3 id = "header_indent"> Here are some projects currently on the website: </h3>
+		<table class = "projectTable">
+			<tr>
+				<th class = "tableTitleSearch"> Title </th>
+				<th class = "tableTagsSearch"> Tags </th>
+				<th class = "tableSummarySearch"> Summary </th>
+			</tr>
+			{% for project in sample_projects %}
+				<tr>
+					<td><h3 id = "proj_title_header">{{project.title}}</td></h3>
+					<td>
+						{% if project.p_tags %}
+							<ul>
+							{% for tag in project.p_tags %}
+								<li><h4 id = "tagList">{{tag.name}}</h4>
+							{% endfor %}
+							</ul>
+						{% endif %}
+					</td>
+				<td class = "tableSummaryBox"> {{project.summary}} </td>
+			</tr>
+			{% endfor %}
+		</table>
+		<br>
+		<div class= "textPadding">
+ 			If you would like to view more information about the projects on the website,
+ 			you must have an account.  If you are a Pitt student, register by using going
+			to the create account link above.  If you would like to list projects on the
+			website, please contact abc@pitt.edu.
+		</div>
 	{% endif %}
-	<dd> If you would like to view the projects listed on this website, you must either be a project provider or create an
-		 account if you are a Pitt student using your Pitt email.
-	</dd>
 {% endblock %}

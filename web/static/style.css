@@ -271,6 +271,15 @@ main {
 	width: 100%;
 	margin-bottom: 10px;
 }
+
+.output_message{
+	color: blue;
+	display: inline;
+}
+
+.inputBoxIndent{
+	margin-left: 5%;
+}
 /*************************************************************
   project listing tables
 *************************************************************/
@@ -290,6 +299,10 @@ main {
 
 .tableTags{
 	width: 30%;
+}
+
+.tableUserTitles{
+	width: 60%;
 }
 
 .tableTagsSearch{
@@ -500,7 +513,11 @@ main {
 .textPadding{
 	margin-left: 5%;
 	margin-right: 5%;
-	width: 100%;
+	width: 90%;
+}
+
+#password_update{
+	margin-left: 5%;
 }
 
 /************************************************************
