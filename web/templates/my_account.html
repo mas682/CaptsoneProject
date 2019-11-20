@@ -105,5 +105,67 @@
                 </div>
             {% endif %}
 		{% endif %}
+		<br>
+		<h2 class = "projectHeaders">Delete Account</h2>
+		<form id = "removeAccountForm" action = "" method="Post" novalidate>
+			{{ form2.hidden_tag()}}
+		</form>
+		{% if 'remove_account' not in edit %}
+			<div class = "submit_data_button_left">
+				<button type="submit" name="remove_account" form="removeAccountForm">Remove Account</button>
+			</div>
+			<br>
+		{% else %}
+			<div class="textPadding">
+				<h4 id="headerMargins">Enter your email and password to delete your account.</h4>
+			</div>
+			<div class = "password_box">
+				<div class = "password_text">
+					Email:
+				</div>
+				{% if 'remove_account_final' in edit and form2.email.errors %}
+					<div class = "password_box_box">
+						{{form2.email(class = "password_input_box_error", form="removeAccountForm")}}
+					</div>
+					<div id = "error_text">
+						{% for error in form2.email.errors %}
+							<span class="input_error">{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					<div class = "password_box_box">
+						{{form2.email(class = "password_input_box", form="removeAccountForm")}}
+					</div>
+				{% endif %}
+			</div>
+			<div class = "password_box">
+				<div class = "password_text">
+					Password:
+				</div>
+				{% if form2.password.errors and 'remove_account_final' in edit %}
+					<div class = "password_box_box">
+						{{form2.password(class = "password_input_box_error", form="removeAccountForm")}}
+					</div>
+					<div id = "error_text">
+						{% for error in form2.password.errors %}
+							<span class="input_error">{{ error }}</span>
+						{% endfor %}
+					</div>
+				{% else %}
+					<div class = "password_box_box">
+						{{form2.password(class = "password_input_box", form="removeAccountForm")}}
+					</div>
+				{% endif %}
+			</div>
+			<div class = "submit_changes_button">
+				<button id = "remove_project_button" type="submit" name="remove_account_final" form="removeAccountForm">Delete Account</button>
+			</div>
+			<div class = "submit_changes_button">
+				<div>
+					<button type="submit" name="cancel_remove_account" form="removeAccountForm">Cancel</button>
+				</div>
+			</div>
+			<br>
+		{% endif %}
 	{% endif %}
 {% endblock %}

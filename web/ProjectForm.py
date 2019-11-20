@@ -21,6 +21,9 @@ class ApplicantForm(Form):
     password2 = StringField('Password', widget=PasswordInput(hide_value=False))
     password3 = StringField('Password', widget=PasswordInput(hide_value=False))
 
+class AccountRemovalForm(Form):
+    email = StringField('Email')
+    password = StringField('Password', widget=PasswordInput(hide_value=False))
 
 class SearchForm(Form):
     class Meta:

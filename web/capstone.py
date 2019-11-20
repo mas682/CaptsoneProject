@@ -2,7 +2,7 @@ from flask import Flask, request, session, url_for, redirect, render_template, a
 from sqlalchemy.exc import IntegrityError
 from app import *
 from models import db, Tag, User, Project, ApplicantTags, KeyWord
-from ProjectForm import ProjectForm, TagForm, SearchForm, ApplicantForm
+from ProjectForm import ProjectForm, TagForm, SearchForm, ApplicantForm, AccountRemovalForm
 import math
 import operator
 import nltk
@@ -1013,6 +1013,39 @@ def update_password(form, list):
 	form.password3.data=""
 	return success
 
+def remove_account(form, list):
+	success = False
+	if(len(form.password.data) < 1):
+		form.password.errors.append("Your password must be entered")
+	if(len(form.email.data) < 1):
+		form.email.errors.append("Your email must be entered")
+	elif(g.user.email != form.email.data):
+		form.email.errors.append("The email is incorrect")
+		form.email.data=""
+	elif(g.user.password != form.password.data):
+		form.password.errors.append("The password is incorrect")
+		form.password.data=""
+	else:
+		user = User.query.filter_by(user_id=g.user.user_id).first()
+		tags = ApplicantTags.query.filter_by(uid=user.user_id).all()
+		for t in tags:
+			db.session.delete(t)
+		projects = Project.query.filter_by(user=user.user_id).all()
+		for p in projects:
+			db.session.delete(p)
+		db.session.commit()
+		try:
+			db.session.delete(user)
+			db.session.commit()
+			print("Account deleted")
+			success = True
+		except IntegrityError:
+			db.session.rollback()
+			form.password.errors.append("There was an error deleting the account")
+	form.password.data=""
+	form.email.data=""
+	return success
+
 @app.route('/my_account', methods=['Get', 'Post'])
 def account():
 	if not g.user:
@@ -1022,10 +1055,10 @@ def account():
 		my_tags = []
 		tag_ids = ApplicantTags.query.filter_by(uid=g.user.user_id).all()
 		for tag in tag_ids:
-			t = Tag.query.filter_by(tid=tag.tid).first()
+			t = Tag.query.filter_by(tid = tag.tid).first()
 			my_tags.append(t)
-			print(t)
 		form = ApplicantForm(request.form)
+		form2=AccountRemovalForm(request.form)
 		password_errors = []
 		email_errors = []
 		if request.method == 'POST':
@@ -1050,7 +1083,7 @@ def account():
 			elif 'update_email' in request.form:
 				# mark that the button pushed indicated updating email, not password
 				if 'edit_email' not in list:
-						return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags)
+						return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2)
 				if 'update_pass' in list:
 					list.remove('update_pass')
 				error = None
@@ -1059,7 +1092,7 @@ def account():
 				else:
 					error = update_email(form, list)
 				form.email.errors.append(error)
-				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags)
+				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2)
 			elif 'update_password' in request.form:
 				if 'update_email' in list:
 					list.remove('update_email')
@@ -1074,11 +1107,31 @@ def account():
 					success = "Your password has been updated"
 				else:
 					success = None
-				return render_template('my_account.html', edit = session['edit_account'], form=form, success = success, tags=my_tags)
+				return render_template('my_account.html', edit = session['edit_account'], form=form, success = success, tags=my_tags, form2=form2)
 			elif 'edit_tags' in request.form:
 				return redirect(url_for('my_tags'))
-			return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags)
-		return render_template('my_account.html', edit = [], form = form, email_errors = [], password_errors = [], tags=my_tags)
+			elif 'remove_account' in request.form:
+				if 'remove_account' not in list:
+					list.append('remove_account')
+				session.pop('edit_account', None)
+				session['edit_account']=list
+				return render_template('my_account.html', edit = session['edit_account'], form=form, form2=form2, tags=my_tags)
+			elif 'remove_account_final' in request.form:
+				if('remove_account_final' not in list):
+					list.append('remove_account_final')
+				removal_success = False
+				if not form2.validate_on_submit():
+					removal_success = remove_account(form2, list)
+				else:
+					removal_success = remove_account(form2, list)
+				if removal_success:
+					removal_success = "Your account has been deleted"
+					return redirect(url_for('home'))
+				else:
+					removal_success = None
+				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, removal_success = removal_success, form2=form2)
+			return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2)
+		return render_template('my_account.html', edit = [], form = form, email_errors = [], password_errors = [], tags=my_tags, form2=form2)
 #########################################################################################
 # Other page routes
 #########################################################################################
