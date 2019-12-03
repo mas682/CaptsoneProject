@@ -17,7 +17,7 @@
 				<br>
 				<h3 class = "output_message" id = "password_update" >{{updated_email}}</h3>
 			{% endif %}
-            <p> {{project.title}}
+            <div class = "textPadding"> {{project.title}} </div><br>
         {% else %}
 				{% if form.title.errors %}
 					{{form.title(class = "project_input_box_error", id = "project_title_input", form="editProjectForm")}}
@@ -35,7 +35,7 @@
 		<h2 class = "projectHeaders">Summary</h2>
         {% if 'edit_summary' not in edit %}
             <button type="submit" form = "editProjectForm" class = "editProjectButton" name="edit_summary">Edit Summary</button>
-            <p> {{project.summary}}
+            <div class = "textPadding"> {{project.summary}} </div><br>
         {% else %}
 			{% if form.summary.errors %}
 				{{form.summary(class = "project_input_box_error", id = "project_background_input", form="editProjectForm")}}
@@ -53,7 +53,7 @@
         <h2 class = "projectHeaders">Background</h2>
         {% if 'edit_background' not in edit %}
             <button type="submit" form = "editProjectForm" class = "editProjectButton" name="edit_background">Edit Background</button>
-            <p> {{project.background}}
+            <div class = "textPadding"> {{project.background}} </div><br>
         {% else %}
 			{% if form.background.errors %}
 				{{form.background(class = "project_input_box_error", id = "project_background_input", form="editProjectForm")}}
@@ -71,7 +71,7 @@
         <h2 class = "projectHeaders">Description</h2>
         {% if 'edit_description' not in edit %}
             <button type="submit" class = "editProjectButton" form="editProjectForm" name = "edit_description">Edit Description</button>
-            <p> {{project.description}}
+            <div class = "textPadding"> {{project.description}} </div><br>
         {% else %}
 			{% if form.description.errors %}
 				{{form.description(class = "project_input_box_error", id = "project_description_input", form="editProjectForm")}}
@@ -89,7 +89,7 @@
         <h2 class = "projectHeaders">Contact Email</h2>
         {% if 'edit_contact' not in edit %}
             <button type="submit" class = "editProjectButton" form="editProjectForm" name = "edit_contact">Edit Contact Email</button>
-            <p> {{project.contact}}
+            <div class = "textPadding"> {{project.contact}} </div><br>
         {% else %}
 			{% if form.email.errors %}
 				{{form.email(class = "project_input_box_error", form="editProjectForm")}}
@@ -184,15 +184,15 @@
 		{% endif %}
 	{% else %}
 		<h2 class = "projectHeaders">Title</h2>
-		<p> {{project.title}}
+		<div class = "textPadding"> {{project.title}} </div><br>
 		<h2 class = "projectHeaders">Summary</h2>
-		<p> {{project.summary}}
+		<div class = "textPadding"> {{project.summary}} </div><br>
 		<h2 class = "projectHeaders">Background</h2>
-		<p> {{project.background}}
+		<div class = "textPadding"> {{project.background}} </div><br>
 		<h2 class = "projectHeaders">Description</h2>
-		<p> {{project.description}}
+		<div class = "textPadding"> {{project.description}} </div><br>
 		<h2 class = "projectHeaders">Contact Email</h2>
-		<p> {{project.contact}}
+		<div class = "textPadding"> {{project.contact}} </div><br>
 		<h2 class = "projectHeaders">Project Tags</h2>
 		{% if project.p_tags %}
 			<div id = "tags_created">
@@ -203,6 +203,7 @@
 					</div>
 				{% endfor %}
 			</div>
+			<br>
 		{% endif %}
 	{% endif %}
 {% endblock %}
