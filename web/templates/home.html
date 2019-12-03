@@ -10,8 +10,23 @@
 		you'll have to extend this logic further... #}
 	{% if g.user %}
 		{% if new_user %}
-			Welcome to the Pitt Capstone Website!
-			<br> Here are some tips for new users:
+			<div class = "textPadding">
+				<h3>Welcome to the Pitt Capstone Website!</h3>
+				<br> Here are some tips for new users:
+				<br>
+				If you would like to have projects suggested for you, you can associate tags with yourself
+				by accessing them in the "My Account" tab.  The suggested projects will be listed below in
+				a table once you have tags associated with yourself.  You can search for projects by going to
+				the "Projects" tab.
+				{% if g.user.provider %}
+				As a provider, you can post a project by going to the "Projects" tab and going to create a project.
+				Projects that you post will be listed in a table below on this page as well.
+				{% endif %}
+				{% if g.user.admin %}
+				As an admin, you can add project providers, edit any project, or manage any users account by
+				going to the "Administrator" tab.
+				{% endif %}
+			</div>
 		{% endif %}
 		{% if g.user.provider %}
 			{% if my_projects %}
@@ -181,10 +196,9 @@
 				<p>
 					Welcome to the Pitt Capstone Website!
 					<br> If you have an account, sign in to the right.
-					<br> If you do not have an account, click "Create an Account!" to join
-					<br> The website is used to help students and faculty connect on various projects
-					<br> Below is a listing of a few of the projects currently available
-
+					<br> If you do not have an account, click "Create an Account!" to join as a student.
+					<br> If you want to list projects on the website, you need to contact abc@pitt.edu.
+					<br> The website is used to help students and faculty connect on various projects.
 				</p>
 			</div>
 			<div id = "login">

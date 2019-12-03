@@ -4,27 +4,43 @@
 
 {% block main %}
 	<h2>{{ self.title() }}</h2>
+	<div class = "textPadding">
+		A user whom is going to be a project provider can be created here.
+		Users who want to add be a project provider must have an admin give them access. This can be done in one of two ways:<br>
+		1. Sign up a user here(with the option to add them as an admin)
+		<br>
+		2. If a user already has an account, you can change their rights by going to manage users in a admin account.
+	</div>
+	<br>
 	{% if output %}
 		<h3 class = "output_message" id = "password_update" >{{output}}</h3>
 	{% endif %}
 
 	{% if error %}
-		<div class="error"><strong>Error:</strong> {{ error }}</div>
+		<div class = "textPadding"><div class="error"><strong>Error:</strong> {{ error }}</div></div>
+		<br>
 	{% endif %}
 
 	<form action="" method="post">
-		<dl>
-			<dt>E-Mail:
-			<dd><input type="text" name="email" size="30" value="{{ request.form.email }}">
-			<dt>Password:
-			<dd><input type="password" name="password" size="30">
-			<dt>Password <small>(repeat)</small>:
-			<dd><input type="password" name="password2" size="30">
-			<dt>Type of account:
-			<dd><input type="checkbox" name="applicant" value = "app"><label id = "applicant" for="checkbox">Project Applicant</label>
-			<dd><input type="checkbox" name="provider" value = "prov"><label id = "provider" for="checkbox">Project Provider</label>
-            <dd><input type="checkbox" name="admin" value = "admin"><label id = "admin" for="checkbox">Administrator</label>
-		</dl>
-		<input type="submit" value="Sign Up">
+			<div class = "textPadding">
+				Email:
+				<br>
+				<input type="text" name="email" size="30" value="{{ request.form.email }}">
+				<br>
+				Password:
+				<br>
+				<input type="password" name="password" size="30">
+				<br>
+				Password <small>(repeat)</small>:
+				<br>
+				<input type="password" name="password2" size="30">
+				<br>
+				Type of account(This account will already have provider and applicant rights):
+            	<br>
+				<input type="checkbox" name="admin" value = "admin"><label id = "admin" for="checkbox">Administrator</label>
+				<br>
+				<br>
+				<input type="submit" value="Add user">
+			</div>
 	</form>
 {% endblock %}

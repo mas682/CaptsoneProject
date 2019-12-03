@@ -4,10 +4,12 @@
 
 {% block main %}
 	<h2>{{ self.title() }}</h2>
-
+	<div class = "textPadding">
+		To create a project you must enter a title, summary, background, description, and a contact email.
+	</div>
 	<form id = "form1" action = "{{url_for('create_project') }}" method="Post" novalidate>
 		{{ form.hidden_tag() }}
-		<dt>{{form.title.label}}
+		<dt><h5>{{form.title.label}}<h5></dt>
 		{% if form.title.errors %}
 			{{form.title(class = "project_input_box_error", id = "project_title_input")}}
 			{% for error in form.title.errors %}
@@ -16,7 +18,14 @@
 		{% else %}
 			{{form.title(class = "project_input_box", id = "project_title_input")}}
 		{% endif %}
-		<dt>{{form.summary.label}}
+		<br>
+		<dt><h5>{{form.summary.label}}<h5></dt>
+		<div class = "textPadding">
+			Please try to limit this to 2-3 sentences briefly describing what the project is.  This will
+			give users an idea of what the project is without having to actually read through everything
+			first.
+		</div>
+		<br>
 		{% if form.summary.errors %}
 			{{form.summary(class = "project_input_box_error", id = "project_background_input")}}
 			{% for error in form.summary.errors %}
@@ -25,7 +34,11 @@
 		{% else %}
 			{{form.summary(class = "project_input_box", id = "project_background_input")}}
 		{% endif %}
-		<dt>{{form.background.label}}
+		<dt><h5>{{form.background.label}}</h5></dt>
+		<div class = "textPadding">
+			Please try to give a description of why the project is being done.
+		</div>
+		<br>
 		{% if form.background.errors %}
 			{{form.background(class = "project_input_box_error", id = "project_background_input")}}
 			{% for error in form.background.errors %}
@@ -34,7 +47,12 @@
 		{% else %}
 			{{form.background(class = "project_input_box", id = "project_background_input")}}
 		{% endif %}
-		<dt>{{form.description.label}}
+		<dt><h5>{{form.description.label}}<h5></dt>
+		<div class = "textPadding">
+			Please try to give as thorough of a description of what the project is as you can.  If possible,
+			try to give the students an idea of what you expect them to already have knowledge of.
+		</div>
+		<br>
 		{% if form.description.errors %}
 			{{form.description(class = "project_input_box_error", id = "project_description_input")}}
 			{% for error in form.description.errors %}
@@ -43,7 +61,11 @@
 		{% else %}
 			{{form.description(class = "project_input_box", id = "project_description_input")}}
 		{% endif %}
-		<dt>{{form.email.label}}
+		<dt><h5>{{form.email.label}}</h5><dt>
+		<div class = "textPadding">
+			The email can be your email or some other person with whom to contact about participating in the project.
+		</div>
+		<br>
 		{% if form.email.errors %}
 			{{form.email(class = "project_input_box_error")}}
 			{% for error in form.email.errors %}

@@ -1,18 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}User List{% endblock %}
+{% block title %}My Tags{% endblock %}
 
 {% block main %}
 <form id = "tag_form" action = "{{url_for('my_tags') }}" method="Post" novalidate>
     <div id = "insert_tags">
         {{ form.hidden_tag() }}
         <div id = "tagBarLabel">
-            {{form.tags.label()}}
+            <h2 class = "projectHeaders">My Tags</h2>
+        </div>
+        <div class = "textPadding">
+            Having tags associated with your account lets us suggest projects for you.
+            You can add or remove tags at any time.
         </div>
         <div id = "tagInputBox">
+            <br>
             {{form.tags(value = "", class_='inputBox')}}
         </div>
         <div id="addTagButton">
+            <br>
             {{form.submit2(class_='insertTagButton')}}
         </div>
         <div id = "formError">
@@ -23,6 +29,7 @@
             {% endif %}
         </div>
         <div id = "tag_listing">
+            <br>
             The tags associated with your account are listed below. Click on them to remove them.
         </div>
     </div>

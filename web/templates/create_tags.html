@@ -1,13 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}User List{% endblock %}
+{% block title %}Add Tags{% endblock %}
 
 {% block main %}
 <form id = "tag_form" action = "{{url_for('create_tags') }}" method="Post" novalidate>
     <div id = "insert_tags">
         {{ form.hidden_tag() }}
         <div id = "tagBarLabel">
-            {{form.tags.label()}}
+            <h3 id = "page_header">{{form.tags.label()}}</h3>
+        </div>
+        <div class = "textPadding">
+            Tags are things such as keywords to associate with your project.
+            By having tags associated with your project, users will have your project suggested
+            to them if they have the same tags as those associated with your project.
+            Try to limit your tags to no more than 2 words.
+            By default, the system will make the first letter of a tag capitalized and the rest will be
+            lower-cased.
         </div>
         <div id = "tagInputBox">
             {{form.tags(value = "", class_='inputBox')}}
@@ -22,6 +30,7 @@
                 {% endfor %}
             {% endif %}
         </div>
+        <br>
         <div id = "tag_listing">
             Your current tags for the project are below. Click on them to remove them.
         </div>

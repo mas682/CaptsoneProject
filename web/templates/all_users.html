@@ -15,7 +15,7 @@
             </tr>
             {% for user in users %}
                 <tr>
-                    <td> <a class = "projectLink" href="">{{user[0].email}}</td>
+                    <td> <a class = "projectLink" href="{{ url_for('users', user=user[0].user_id)}}">{{user[0].email}}</td>
                     <td>
                         {% if user[1] %}
                             <ul>

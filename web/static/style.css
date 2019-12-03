@@ -147,6 +147,10 @@ body {
 	width: 100%;
 }
 
+.warningText {
+	color: red;
+	font-weight: bold;
+}
 
 /*************************************************************
   main body formatting

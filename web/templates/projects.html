@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}User List{% endblock %}
+{% block title %}Pitt Capstone Website{% endblock %}
 
 {% block main %}
 	{% if projects and user %}
@@ -9,7 +9,14 @@
 		</form>
 		<div class = "search_box">
 			<div class = "search_bar_label">
-				<h3 id = "page_header">{{form.search.label()}}
+				<h3 id = "page_header">Search:
+			</div>
+			<div class = "textPadding">
+				You can either search by tags associated with projects or by words within a project.
+				To search for a multi-word tag or keyword such as "capstone project", you have to place
+				the words in quotations(ex. "capstone project").  Searching also returns anything that
+				starts with the word you are searching for.  Thus if you search for "cap", projects with the
+				word "capstone" will also be returned.
 			</div>
 			<div class = "searchInputBox">
 				{{form.search(class_ = "searchBox", id = "search_tag_input", form="searchForm")}}
@@ -23,7 +30,11 @@
 				{{form.type(class_ = "searchButton", type="submit", formaction = url_for('projects', index=len), form="searchForm", value = "Search by keyword")}}
 			</div>
 		</div>
-		<h3 id = "header_indent"> The current projects are listed below: </h3>
+		{% if not search %}
+			<h3 id = "header_indent"> The current projects are listed below: </h3>
+		{% else %}
+			<h3 id = "header_indent"> The projects based off of the search are listed below: </h3>
+		{% endif %}
 		<table class = "projectTable">
 			<tr>
 				<th class = "tableTitleSearch"> Title </th>
@@ -101,22 +112,66 @@
 		<br>
 		</div>
 		</div>
-	{% elif not projects and user and search %}
+	{% elif not projects and user and search and type == 'Search by tag' %}
 		<form id = "searchForm" action = "{{url_for('projects', index=len)}}" method="GET" novalidate>
 			{{ form.hidden_tag()}}
 		</form>
-		<div id = "insert_tags">
-			<div id = "tagBarLabel">
-				<h3>{{form.search.label()}}
+		<div class = "search_box">
+			<div class = "search_bar_label">
+				<h3 id = "page_header">Search:
 			</div>
-			<div id = "tagInputBox">
-				{{form.search(class = "inputBox", id = "search_tag_input", form="searchForm")}}
+			<div class = "textPadding">
+				You can either search by tags associated with projects or by words within a project.
+				To search for a multi-word tag or keyword such as "capstone project", you have to place
+				the words in quotations(ex. "capstone project").  Searching also returns anything that
+				starts with the word you are searching for.  Thus if you search for "cap", projects with the
+				word "capstone" will also be returned.
 			</div>
-			<div class = "addTagButton">
-				<button type="submit" formaction = "{{url_for('projects', index=len)}}" form="searchForm" >Search</button>
+			<div class = "searchInputBox">
+				{{form.search(class_ = "searchBox", id = "search_tag_input", form="searchForm")}}
 			</div>
 		</div>
-		<h3> There are no projects associted with the tag(s) "{{search}}"</h3>
+		<div class = "searchButtonBox">
+			<div class = "addSearchButton">
+				{{form.type(class_ = "searchButton", type="submit", formaction = url_for('projects', index=len), form="searchForm", value = "Search by tag")}}
+			</div>
+			<div class = "addSearchButton">
+				{{form.type(class_ = "searchButton", type="submit", formaction = url_for('projects', index=len), form="searchForm", value = "Search by keyword")}}
+			</div>
+		</div>
+		<div class = "textPadding">
+			<h3> There are no projects associted with the tag(s) "{{search}}"</h3>
+		</div>
+		{% elif not projects and user and search and type == 'Search by keyword' %}
+			<form id = "searchForm" action = "{{url_for('projects', index=len)}}" method="GET" novalidate>
+				{{ form.hidden_tag()}}
+			</form>
+			<div class = "search_box">
+				<div class = "search_bar_label">
+					<h3 id = "page_header">Search:
+				</div>
+				<div class = "textPadding">
+					You can either search by tags associated with projects or by words within a project.
+					To search for a multi-word tag or keyword such as "capstone project", you have to place
+					the words in quotations(ex. "capstone project").  Searching also returns anything that
+					starts with the word you are searching for.  Thus if you search for "cap", projects with the
+					word "capstone" will also be returned.
+				</div>
+				<div class = "searchInputBox">
+					{{form.search(class_ = "searchBox", id = "search_tag_input", form="searchForm")}}
+				</div>
+			</div>
+			<div class = "searchButtonBox">
+				<div class = "addSearchButton">
+					{{form.type(class_ = "searchButton", type="submit", formaction = url_for('projects', index=len), form="searchForm", value = "Search by tag")}}
+				</div>
+				<div class = "addSearchButton">
+					{{form.type(class_ = "searchButton", type="submit", formaction = url_for('projects', index=len), form="searchForm", value = "Search by keyword")}}
+				</div>
+			</div>
+			<div class = "textPadding">
+				<h3> There are no projects associted with the keyword(s) "{{search}}"</h3>
+			</div>
 	{% else %}
 		<h3 id = "header_indent"> Here are some projects currently on the website: </h3>
 		<table class = "projectTable">

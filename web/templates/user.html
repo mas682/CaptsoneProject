@@ -7,6 +7,9 @@
         <form id = "editAccountForm" action = "" method="Post" novalidate>
 			{{ form.hidden_tag()}}
 		</form>
+		<form id = "editRightsForm" action = "" method="Post" novalidate>
+
+		</form>
         <h2 class = "projectHeaders">Email</h2>
 		{% if 'edit_email' not in edit %}
 			<button form = "editAccountForm" class = "editProjectButton" name = "edit_email" type="submit">Edit Email</button>
@@ -40,8 +43,12 @@
 			<br>
         {% endif %}
         <h2 class = "projectHeaders">Account type(s)</h2>
-		{% if 'edit_email' not in edit %}
-			<button form = "editAccountForm" class = "editProjectButton" name = "edit_email" type="submit">Edit Account Type</button>
+		{% if 'edit_rights' not in edit %}
+			<button form = "editRightsForm" class = "editProjectButton" name = "edit_rights" type="submit">Edit Account Type</button>
+			{% if updated_rights %}
+				<br>
+				<h3 class = "output_message" id = "password_update" >{{updated_rights}}</h3>
+			{% endif %}
             <ul>
                 {% if user.admin %}
                     <li>Administrator
@@ -54,23 +61,26 @@
             </ul>
 			<br>
         {% else %}
-			{% if form.email.errors and 'update_email' in edit %}
+			<div class="textPadding">
+				<div class = "warningText">Warning: If a user is a provider and you remove this right, all of
+				there projects will be removed. Also if a user is given admin rights, they are automatically
+				given provider rights.</div>
 				<br>
-				{{form.email(class = "email_input_box_error", form="editAccountForm")}}
-				{% if form.email.errors %}
-					<br>
-				{% endif %}
-				{% for error in form.email.errors %}
-					<span class = "input_error">{{ error }}</span>
-				{% endfor %}
+			</div>
+			{% if user.provider %}
+				<dd><input type="checkbox" name="provider" form="editRightsForm" value = "prov" checked = checked><label id = "provider" for="checkbox">Project Provider</label></dd>
 			{% else %}
-				<br>
-            	{{form.email(class = "email_input_box", form="editAccountForm")}}
+				<dd><input type="checkbox" name="provider" form="editRightsForm" value = "prov"><label id = "provider" for="checkbox">Project Provider</label></dd>
+			{% endif %}
+			{% if user.admin %}
+				<dd><input type="checkbox" name="admin" form="editRightsForm" value = "admin" checked = checked><label id = "admin" for="checkbox">Administrator</label></dd>
+			{% else %}
+				<dd><input type="checkbox" name="admin" form="editRightsForm" value = "admin"><label id = "admin" for="checkbox">Administrator</label></dd>
 			{% endif %}
             <br>
 			<div class = "submit_changes_button">
-				<button type="submit" name="update_email" form="editAccountForm">Update Email</button>
-				<button type="submit" name="cancel_update_email" form="editAccountForm">Cancel</button>
+				<button type="submit" name="update_rights" form="editRightsForm">Update Rights</button>
+				<button type="submit" name="cancel_update_rights" form="editRightsForm">Cancel</button>
 			</div>
 			<br>
         {% endif %}
@@ -167,11 +177,16 @@
 			<br>
 		{% else %}
 			<div class="textPadding">
-				<h4 id="headerMargins">Enter your email and password to delete your account.</h4>
+				<h4 id="headerMargins">Enter the users email and your password to delete the account.</h4>
+			</div>
+			<div class="textPadding">
+				<div class = "warningText">Warning: If a user is a provider and you delete them, all of
+				there projects will be removed.</div>
+				<br>
 			</div>
 			<div class = "password_box">
 				<div class = "password_text">
-					Email:
+					Email of the user to remove:
 				</div>
 				{% if 'remove_account_final' in edit and form2.email.errors %}
 					<div class = "password_box_box">
@@ -190,7 +205,7 @@
 			</div>
 			<div class = "password_box">
 				<div class = "password_text">
-					Password:
+					Your Password:
 				</div>
 				{% if form2.password.errors and 'remove_account_final' in edit %}
 					<div class = "password_box_box">

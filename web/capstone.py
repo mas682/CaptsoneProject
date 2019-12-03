@@ -58,6 +58,8 @@ def login():
 
 	return render_template('login.html', error=error)
 
+
+# this is for a user registering themselves
 @app.route('/register', methods=['GET', 'POST'])
 def register():
 	"""Registers the user."""
@@ -95,6 +97,7 @@ def register():
 			return redirect(url_for('login'))
 	return render_template('register.html', error=error)
 
+# this is for a admin registering a provider
 @app.route('/register_provider', methods=['GET', 'POST'])
 def registerProvider():
 	"""Registers a project provider."""
@@ -111,17 +114,23 @@ def registerProvider():
 			error = 'You have to enter a password'
 		elif request.form['password'] != request.form['password2']:
 			error = 'The two passwords do not match'
-		elif not request.form.get('applicant') and not request.form.get('provider'):
-			error = "You did not pick applicant or project proivder"
 		else:
 			try:
-				db.session.add(User(
-					email = request.form['email'],
-					password = request.form['password'],
-					provider = True,
-					admin = False,
-					new_user=True))
-				db.session.commit()
+				if(request.form.get('admin')):
+					db.session.add(User(
+						email = request.form['email'],
+						password = request.form['password'],
+						provider = True,
+						admin = True,
+						new_user=True))
+				else:
+					db.session.add(User(
+						email = request.form['email'],
+						password = request.form['password'],
+						provider = True,
+						admin = False,
+						new_user=True))
+					db.session.commit()
 			except IntegrityError:
 				db.session.rollback()
 				error = 'The username is already taken'
@@ -139,7 +148,7 @@ def logout():
 	session.pop('user_id', None)
 	return redirect(url_for('home'))
 
-
+# this method deals with searching projects, and individual project pages
 @app.route('/projects', methods=['GET', 'POST'])
 @app.route('/projects/<project_id>', methods=['GET', 'POST'])
 def projects(project_id = None, search_tags = None):
@@ -755,7 +764,7 @@ def get_suggested_table(request, tags):
 
 	return [suggested_projects, length, session['current_page2'] + 1]
 
-
+# this is for the first page of creating a project
 @app.route('/create_project', methods=['Get', 'Post'])
 def create_project():
 	session.pop('form1', None)
@@ -797,7 +806,7 @@ def tag_ranking():
 		temp_tags.append([tag, t.value])
 	return render_template('tag_ranks.html', tags = temp_tags, output = output)
 
-
+# this deals with a user editing their tags associated with themselves
 @app.route('/my_tags', methods=['Get', 'Post'])
 def my_tags():
 	if not g.user:
@@ -882,6 +891,7 @@ def remove_user_tag(tag):
 				db.session.delete(utag)
 				db.session.commit()
 
+# this deals with adding tags to a project when creating it
 @app.route('/create_project/create_tags', methods=['Get', 'Post'])
 def create_tags():
 	form = TagForm(request.form)
@@ -987,6 +997,8 @@ def create_inverted_index(text, project):
 	tokens = get_key_words(text)
 	if tokens:
 		for term in tokens:
+			if len(term) > 24:
+				continue
 			keyword = KeyWord.query.filter_by(name=term).first()
 			if not keyword:
 				try:
@@ -1012,6 +1024,7 @@ def create_inverted_index(text, project):
 					db.session.commit()
 				print("Keyword " + str(term) + " added to db")
 
+# method for a user updating their own email
 def update_email(form, list):
 	error = None
 	if (g.user.provider or g.user.admin) and '@' not in form.email.data:
@@ -1019,7 +1032,6 @@ def update_email(form, list):
 		if 'update_email' not in list:
 			list.append('update_email')
 	elif g.user and not(g.user.provider or g.user.admin) and '@pitt.edu' not in form.email.data:
-
 		error = "You must enter your University of Pittsburgh email"
 		if 'update_email' not in list:
 			list.append('update_email')
@@ -1037,8 +1049,40 @@ def update_email(form, list):
 		except IntegrityError:
 			db.session.rollback()
 			error = "Email aleady exists in the system"
+			list.append('edit_email')
+			list.append('update_email')
 	return error
 
+# method for a admin updating a users email
+def update_email_admin(form, list, user):
+	error = None
+	if (user.provider or user.admin) and '@' not in form.email.data:
+		error = "You must enter a email address"
+		if 'update_email' not in list:
+			list.append('update_email')
+	elif user and not(user.provider or user.admin) and '@pitt.edu' not in form.email.data:
+		error = "You must enter your University of Pittsburgh email"
+		if 'update_email' not in list:
+			list.append('update_email')
+	else:
+		try:
+			user.email = form.email.data
+			print(form.email.data)
+			print(user.email)
+			db.session.commit()
+			list.remove('edit_email')
+			if 'update_email' in list:
+				list.remove('update_email')
+			session.pop('edit_account_admin', None)
+			session['edit_account_admin'] = list
+		except IntegrityError:
+			db.session.rollback()
+			error = "Email aleady exists in the system"
+			list.append('edit_email')
+			list.append('update_email')
+	return error
+
+# method for a user updating their own password
 def update_password(form, list):
 	success = False
 	if(len(form.password.data) < 1):
@@ -1080,6 +1124,80 @@ def update_password(form, list):
 	form.password3.data=""
 	return success
 
+# method for a admin updating a users password
+def update_password_admin(form, list, user):
+	success = False
+	if(len(form.password.data) < 1):
+		form.password.errors.append("A password must be entered")
+		print(form.password.data)
+	if(len(form.password2.data) < 1):
+		form.password2.errors.append("A password must be entered")
+	if(len(form.password3.data) < 1):
+		form.password3.errors.append("A password must be entered")
+	elif(g.user.password != form.password.data):
+		print(g.user.password)
+		print(form.password.data)
+		form.password.errors.append("Your password is incorrect")
+		form.password.data=""
+	elif(len(form.password2.data) < 6):
+		form.password2.errors.append("Password must be at least 6 characters")
+	elif(form.password3.data != form.password2.data):
+		form.password3.errors.append("This password does not match the new password")
+	elif(len(form.password2.data) > 20):
+		form.password2.errors.append("Password cannot be greater than 20 characters")
+	elif(len(form.password3.data) > 20):
+		form.password3.errors.append("Password cannot be greater than 20 characters")
+	elif(form.password2.data == user.password):
+		form.password2.errors.append("The new password matches the old password")
+	else:
+		try:
+			user.password = form.password2.data
+			db.session.commit()
+			if 'update_pass' in list:
+				list.remove('update_pass')
+			session.pop('edit_account_admin', None)
+			session['edit_account_admin'] = list
+			success = True
+		except IntegrityError:
+			db.session.rollback()
+			form.password1.errors.append("There was an error updating the password")
+	form.password.data=""
+	form.password2.data=""
+	form.password3.data=""
+	return success
+
+# method for a admin chaning a users rights
+def update_rights_admin(form, list, user, rights):
+	success = False
+	try:
+		# if set to admin, automatically given provider rights
+		if 'admin' in rights:
+			user.admin = True
+			user.provider = True
+		else:
+			user.admin = False
+			if 'provider' in rights:
+				user.provider = True
+			else:
+				user.provider = False
+				# if setting the provider to false, remove their projects
+				projects = Project.query.filter_by(user = user.user_id).all()
+				if projects is not None:
+					for p in projects:
+						db.session.delete(p)
+		db.session.commit()
+		if 'update_rights' in list:
+			list.remove('update_rights')
+		list.remove('edit_rights')
+		session.pop('edit_account_admin', None)
+		session['edit_account_admin'] = list
+		success = True
+	except IntegrityError:
+		db.session.rollback()
+	return success
+
+
+# method for a user to delete their own account
 def remove_account(form, list):
 	success = False
 	if(len(form.password.data) < 1 or len(form.email.data) < 1):
@@ -1114,6 +1232,41 @@ def remove_account(form, list):
 	form.email.data=""
 	return success
 
+# method for a admin user to an account
+def remove_account_admin(form, list, user):
+	success = False
+	if(len(form.password.data) < 1 or len(form.email.data) < 1):
+		if(len(form.password.data) < 1):
+			form.password.errors.append("Your password must be entered")
+		if(len(form.email.data) < 1):
+			form.email.errors.append("The account to removes email must be entered")
+	elif(user.email != form.email.data):
+		form.email.errors.append("The email is incorrect")
+		form.email.data=""
+	elif(g.user.password != form.password.data):
+		form.password.errors.append("Your password is incorrect")
+		form.password.data=""
+	else:
+		tags = ApplicantTags.query.filter_by(uid=user.user_id).all()
+		for t in tags:
+			db.session.delete(t)
+		projects = Project.query.filter_by(user=user.user_id).all()
+		for p in projects:
+			db.session.delete(p)
+		db.session.commit()
+		try:
+			db.session.delete(user)
+			db.session.commit()
+			print("Account deleted")
+			success = True
+		except IntegrityError:
+			db.session.rollback()
+			form.password.errors.append("There was an error deleting the account")
+	form.password.data=""
+	form.email.data=""
+	return success
+
+# method for the my account page
 @app.route('/my_account', methods=['Get', 'Post'])
 def account():
 	if not g.user:
@@ -1127,8 +1280,6 @@ def account():
 			my_tags.append(t)
 		form = ApplicantForm(request.form, email=g.user.email)
 		form2=AccountRemovalForm(request.form)
-		password_errors = []
-		email_errors = []
 		if request.method == 'POST':
 			user = User.query.filter_by(user_id=g.user.user_id).first()
 			list = []
@@ -1219,7 +1370,7 @@ def account():
 					list.remove('remove_account')
 				return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2)
 			return render_template('my_account.html', edit = session['edit_account'], form=form, tags=my_tags, form2=form2)
-		return render_template('my_account.html', edit = [], form = form, email_errors = [], password_errors = [], tags=my_tags, form2=form2)
+		return render_template('my_account.html', edit = [], form = form, tags=my_tags, form2=form2)
 #########################################################################################
 # Other page routes
 #########################################################################################
@@ -1269,6 +1420,8 @@ def demo_nltk(title, description, background, summary):
 	for tag in finalTags:
 			t = tag.lower()
 			t = tag.capitalize()
+			if len(t) > 50:
+				continue
 			suggested = Tag.query.filter_by(name=t).first()
 			if not suggested:
 				db.session.add(Tag(name=t, freq=0))
@@ -1281,9 +1434,13 @@ def demo_nltk(title, description, background, summary):
 					tag_set.add(t)
 	print("\nTags:"+str(tag_set))
 	return list(tag_set)
+
 @app.route('/admin/users/<user>', methods=['GET', 'POST'])
 @app.route('/admin/users', methods=['GET'])
 def users(user=None):
+	print(request.form)
+	form = ApplicantForm(request.form, email=g.user.email)
+	form2=AccountRemovalForm(request.form)
 	if not g.user.admin:
 		return redirect(url_for('home'))
 	if user is not None:
@@ -1292,21 +1449,145 @@ def users(user=None):
 		if 'edit_account' in session:
 			session.pop('edit_account', None)
 		users = get_table_users(request)
-		for u in users[0]:
-			print(u[0].email)
 		return render_template('all_users.html', users = users[0], len = users[1], current_page=users[2])
 	elif request.method == 'GET' and user is not None:
-		form = ApplicantForm(request.form)
-		form2 = AccountRemovalForm(request.form)
 		projects = Project.query.filter_by(user=user.user_id).all()
 		return render_template('user.html', user=user, form=form, form2=form2, projects=projects)
+	if request.method == 'POST':
+		print(request.form)
+		projects = Project.query.filter_by(user=user.user_id).all()
+		list = []
+		if 'edit_account_admin' not in session:
+			list = []
+			session['edit_account_admin'] = []
+		else:
+			list = session['edit_account_admin']
+			for t in list:
+				print(t)
+		if 'edit_email' in request.form:
+			if 'edit_email' not in list:
+				list.append('edit_email')
+			if 'update_pass' in list:
+				list.remove('update_pass')
+			session.pop('edit_account_admin', None)
+			session['edit_account_admin'] = list
+			return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, projects=projects, form2=form2)
+		# if update email button pushed
+		elif 'update_email' in request.form:
+			# mark that the button pushed indicated updating email, not password
+			if 'edit_email' not in list:
+					return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, projects=projects, form2=form2)
+			if 'update_pass' in list:
+				list.remove('update_pass')
+			error = None
+			if not form.validate_on_submit():
+				error = update_email_admin(form, list, user)
+			else:
+				error = update_email_admin(form, list, user)
+			if error is not None:
+				form.email.errors.append(error)
+			if not form.email.errors:
+				output = "The email has been updated"
+			else:
+				output = None
+			return render_template('user.html', edit = session['edit_account_admin'], user=user, form=form, form2=form2, updated_email = output, project=projects)
+		elif 'cancel_update_email' in request.form:
+			if 'edit_email' in list:
+				list.remove('edit_email')
+			elif 'update_email' in list:
+				list.remove('update_email')
+			session.pop('edit_account_admin', None)
+			session['edit_account_admin'] = list
+			return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, projects=projects, form2=form2)
+		elif 'update_password' in request.form:
+			if 'update_email' in list:
+				list.remove('update_email')
+			if('update_pass' not in list):
+				list.append('update_pass')
+			success = False
+			if not form.validate_on_submit():
+				success = update_password_admin(form, list, user)
+			else:
+				success = update_password_admin(form, list, user)
+			if success:
+				success = "The users password has been updated"
+			else:
+				success = None
+			return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, success = success, projects=projects, form2=form2)
+		elif 'edit_rights' in request.form:
+			if 'edit_rights' not in list:
+				list.append('edit_rights')
+			if 'update_rights' in list:
+				list.remove('update_rights')
+			session.pop('edit_account_admin', None)
+			session['edit_account_admin'] = list
+			return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, projects=projects, form2=form2)
+		if 'update_rights' in request.form:
+			# mark that the button pushed indicated updating email, not password
+			if 'edit_rights' not in list:
+				return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, projects=projects, form2=form2)
+			if 'update_pass' in list:
+				list.remove('update_pass')
+			if 'update_email' in list:
+				list.remove('update_email')
+			error = None
+			rights = []
+			if(request.form.get('admin')):
+				rights.append("admin")
+			if(request.form.get('provider')):
+				rights.append('provider')
+			error = update_rights_admin(form, list, user, rights)
+			error = True
+			for right in rights:
+				print(right)
+			if error is False:
+				output = "There was an issue updating the users rights"
+			if error is True:
+				output = "The users rights have been updated"
+			else:
+				output = None
+			return render_template('user.html', edit = session['edit_account_admin'], user=user, form=form, form2=form2, updated_rights = output, project=projects)
+		elif 'cancel_update_rights' in request.form:
+			if 'edit_rights' in list:
+				list.remove('edit_rights')
+			elif 'update_rights' in list:
+				list.remove('update_rights')
+			session.pop('edit_account_admin', None)
+			session['edit_account_admin'] = list
+			return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, projects=projects, form2=form2)
+		elif 'remove_account' in request.form:
+			if 'remove_account' not in list:
+				list.append('remove_account')
+			session.pop('edit_account_admin', None)
+			session['edit_account_admin']=list
+			return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, projects=projects, form2=form2)
+		elif 'remove_account_final' in request.form:
+			uname = user.email
+			if('remove_account_final' not in list):
+				list.append('remove_account_final')
+			removal_success = False
+			if not form2.validate_on_submit():
+				removal_success = remove_account_admin(form2, list, user)
+			else:
+				removal_success = remove_account_admin(form2, list, user)
+			if removal_success:
+				removal_success = "The account belonging to " + uname + " has been deleted"
+				return redirect(url_for('users', user=None))
+			else:
+				removal_success = None
+			return render_template('user.html', user=user, edit = session['edit_account_admin'], removal_success=removal_success, form=form, projects=projects, form2=form2)
+		elif 'cancel_remove_account' in request.form:
+			if 'remove_account_final' in list:
+				list.remove('remove_account_final')
+			if 'remove_account' in list:
+				list.remove('remove_account')
+			return render_template('user.html', user=user, edit = session['edit_account_admin'], form=form, projects=projects, form2=form2)#		return render_template('my_account.html', edit = session['edit_account_admin'], form=form, tags=my_tags, form2=form2)
+#	return render_template('my_account.html', edit = [], form = form, email_errors = [], password_errors = [], tags=my_tags, form2=form2)
 
 
 # The home page.
 @app.route('/', methods=['GET', 'POST'])
 def home():
-	for p in session:
-		print(p + " " + str(session[p]))
 	error = None
 	new_user = False
 	if request.method == 'POST':
@@ -1337,7 +1618,5 @@ def home():
 			projects = get_table_page(request)
 			records = ApplicantTags.query.filter_by(uid = g.user.user_id).all()
 			s_projects = get_suggested_table(request,records)
-# will want to remove projects that this user is the owner of..
-			flash(error)
 			return render_template('home.html', new_user = new_user, my_projects=projects[0], len=projects[1], current_page=projects[2], suggested_projects = s_projects[0], len2=s_projects[1], current_page_suggested = s_projects[2])
 		return render_template('home.html')
